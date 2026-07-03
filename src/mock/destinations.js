@@ -131,5 +131,3 @@ const mockDestinations = [
 ];
 
 export const getDestinations = () => mockDestinations;
-
-export const getDestinationById = (id) => mockDestinations.find((destination) => destination.id === id);

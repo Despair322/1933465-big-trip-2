@@ -17,16 +17,22 @@ function humanizeDateAndTime(date){
 }
 
 function getTimeBetween(dateFrom, dateTo) {
-  const duration = dayjs(dateTo).diff(dayjs(dateFrom), 'm');
-  const hours = Math.floor(duration / 60);
+  const duration = getDuration({dateFrom, dateTo});
+  const days = Math.floor(duration / 1440);
+  const hours = Math.floor((duration / 60) % 24);
   const minutes = (duration % 60);
+  const dStr = days ? ` ${days.toString().padStart(2, '0')}D ` : '';
   const hStr = hours ? ` ${hours.toString().padStart(2, '0')}H ` : '';
   const mStr = minutes ? ` ${minutes.toString().padStart(2, '0')}M` : '';
-  return hStr + mStr;
+  return dStr + hStr + mStr;
+}
+
+function getDuration({dateFrom, dateTo}) {
+  return dayjs(dateTo).diff(dayjs(dateFrom), 'm');
 }
 
 function updateItem(items, update) {
   return items.map((item) => item.id === update.id ? update : item);
 }
 
-export { updateItem ,humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween};
+export { updateItem ,humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration };

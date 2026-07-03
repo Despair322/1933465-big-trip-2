@@ -50,7 +50,7 @@ export default class EventPresenter {
         point: this.#point,
         destination: this.#destination,
         offers: this.#offers,
-        onRollupClick: this.#handleEventRollupClick,
+        onRollupClick: this.#handleRollupClick,
         onFavoriteClick: this.#handleFavoriteClick
       }
     );
@@ -63,7 +63,7 @@ export default class EventPresenter {
         allOffers: this.#allOffers,
         destinations: this.#destinations,
         onFormSubmit: this.#handleFormSubmit,
-        onRollupClick: this.#handleEditRollupClick
+        onRollupClick: this.#handleRollupClick
       });
 
     if (prevEventComponent === null || prevEditFormComponent === null) {
@@ -87,21 +87,25 @@ export default class EventPresenter {
 
   resetView() {
     if (this.#mode !== Mode.DEFAULT) {
-      this.#replaceFormToEvent();
+      this.#closeForm();
     }
   }
 
-  #handleEventRollupClick = () => {
-    this.#replaceEventToForm();
-  };
-
-  #handleEditRollupClick = () => {
-    this.#closeForm();
-  };
-
   #closeForm = () => {
-    this.#replaceFormToEvent();
+    replace(this.#eventComponent, this.#editFormComponent);
     window.removeEventListener('keydown', this.#escapeKeydownHandler);
+    this.#mode = Mode.DEFAULT;
+  };
+
+  #openForm() {
+    this.#handleModeChange();
+    replace(this.#editFormComponent, this.#eventComponent);
+    window.addEventListener('keydown', this.#escapeKeydownHandler);
+    this.#mode = Mode.EDITING;
+  }
+
+  #handleRollupClick = () => {
+    this.#toggleEventMode();
   };
 
   #escapeKeydownHandler = (evt) => {
@@ -123,16 +127,11 @@ export default class EventPresenter {
     render(this.#eventComponent, this.#eventContainer);
   }
 
-  #replaceEventToForm() {
-    replace(this.#editFormComponent, this.#eventComponent);
-    window.addEventListener('keydown', this.#escapeKeydownHandler);
-    this.#handleModeChange();
-    this.#mode = Mode.EDITING;
-  }
-
-  #replaceFormToEvent() {
-    replace(this.#eventComponent, this.#editFormComponent);
-    this.#mode = Mode.DEFAULT;
+  #toggleEventMode() {
+    if (this.#mode === Mode.DEFAULT) {
+      this.#openForm();
+    } else {
+      this.#closeForm();
+    }
   }
 }
-

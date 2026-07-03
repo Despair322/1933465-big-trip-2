@@ -15,12 +15,16 @@ export default class EventView extends AbstractView {
     this.#offers = offers;
     this.#handleRollupClick = onRollupClick;
     this.#handleFavoriteClick = onFavoriteClick;
-    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#rollupClickHandler);
-    this.element.querySelector('.event__favorite-btn').addEventListener('click', this.#favoriteClickHandler);
+    this.#initEventListeners();
   }
 
   get template() {
     return createEventTemplate(this.#point, this.#destination, this.#offers);
+  }
+
+  #initEventListeners() {
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#rollupClickHandler);
+    this.element.querySelector('.event__favorite-btn').addEventListener('click', this.#favoriteClickHandler);
   }
 
   #rollupClickHandler = (evt) => {

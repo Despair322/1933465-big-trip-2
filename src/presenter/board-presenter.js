@@ -19,12 +19,9 @@ export default class BoardPresenter {
 
   #points = [];
   #sourcedPoints = [];
-  #blankPoint = null;
-  #blankDestination = null;
-  #types = [];
   #destinations = [];
   #sort = null;
-  #currentSortType = SortType.DEFAULT;
+  #currentSortType = SortType.DAY;
   #eventPresenters = new Map();
 
   constructor({ boardContainer, pointsModel, offersModel, destinationsModel, sort }) {
@@ -37,24 +34,21 @@ export default class BoardPresenter {
 
   init() {
     this.#noEventsComponent = new NoEventsView(Messages.EVERYTHING);
-    this.#points = [...this.#pointsModel.points];
-    this.#sourcedPoints = [...this.#pointsModel.points];
-    this.#blankPoint = BLANK_POINT;
-    this.#blankDestination = BLANK_DESTINATION;
-    this.#types = TYPES;
+    this.#points = structuredClone(this.#pointsModel.points);
+    this.#sourcedPoints = structuredClone(this.#pointsModel.points);
     this.#destinations = this.#destinationsModel.destinations;
     this.#render();
   }
 
   #renderAddForm(container) {
     const offers = [];
-    const allOffers = this.#offersModel.getOffersByType(this.#blankPoint.type);
+    const allOffers = this.#offersModel.getOffersByType(BLANK_POINT.type);
     render(new AddFormView(
       {
-        point: this.#blankPoint,
-        destination: this.#blankDestination,
+        point: BLANK_POINT,
+        destination: BLANK_DESTINATION,
         offers: offers,
-        types: this.#types,
+        types: TYPES,
         allOffers: allOffers,
         destinations: this.#destinations
       }), container);
@@ -71,17 +65,17 @@ export default class BoardPresenter {
   }
 
   #handleSortChange = (sortType) => {
-    if(this.#currentSortType === sortType) {
+    if (this.#currentSortType === sortType) {
       return;
     }
-    this.#points = Sorts[sortType]([...this.#sourcedPoints]);
+    this.#sortPoints(sortType);
     this.#currentSortType = sortType;
     this.#clearEventsList();
     this.#renderEventsList();
   };
 
   #sortPoints(sortType) {
-    this.#points = Sorts[sortType](this.#sourcedPoints);
+    this.#points = Sorts[sortType](structuredClone(this.#sourcedPoints));
   }
 
   #renderSort() {

@@ -17,7 +17,7 @@ offersModel.init();
 const destinationsModel = new DestinationsModel();
 destinationsModel.init();
 const filters = generateFilter(pointsModel.points);
-const sort = generateSort(pointsModel.points);
+const sort = generateSort();
 render(new FilterView({ filters}), siteFiltersElement);
 const boardPresenter = new BoardPresenter({
   boardContainer: siteBoardElement,

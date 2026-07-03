@@ -1,9 +1,9 @@
 import { SortType } from './constants.js';
-import dayjs from 'dayjs';
+import { getDuration } from './utils.js';
 
 const Sorts = {
   [SortType.DAY]: (points) => points,
-  [SortType.TIME]: (points) => points.sort((a, b) => dayjs(a.dateFrom).diff(dayjs(a.dateTo)) - dayjs(b.dateFrom).diff(dayjs(b.dateTo))),
+  [SortType.TIME]: (points) => points.sort((a, b) => getDuration(a) - getDuration(b)),
   [SortType.PRICE]: (points) => points.sort((a, b) => b.basePrice - a.basePrice),
 };
 
