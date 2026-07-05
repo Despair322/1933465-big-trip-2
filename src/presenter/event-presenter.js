@@ -1,7 +1,6 @@
 import EventView from '../view/event-view/event-view.js';
 import EditFormView from '../view/edit-form-view/edit-form-view.js';
 import { remove, render, replace } from '../framework/render.js';
-import { TYPES } from '../utils/constants.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -20,7 +19,6 @@ export default class EventPresenter {
   #offers = [];
   #destination = null;
   #allOffers = [];
-  #types = [];
   #destinations = [];
   #mode = Mode.DEFAULT;
 
@@ -59,11 +57,12 @@ export default class EventPresenter {
         point: this.#point,
         destination: this.#destination,
         offers: this.#offers,
-        types: TYPES,
         allOffers: this.#allOffers,
         destinations: this.#destinations,
         onFormSubmit: this.#handleFormSubmit,
-        onRollupClick: this.#handleRollupClick
+        onRollupClick: this.#handleRollupClick,
+        onTypeChange: this.#handleTypeChange,
+        onDestinationChange: this.#handleDestinationChange
       });
 
     if (prevEventComponent === null || prevEditFormComponent === null) {
@@ -92,6 +91,7 @@ export default class EventPresenter {
   }
 
   #closeForm = () => {
+    this.#editFormComponent.reset({ point: this.#point, destination: this.#destination, offers: this.#offers, allOffers: this.#allOffers });
     replace(this.#eventComponent, this.#editFormComponent);
     window.removeEventListener('keydown', this.#escapeKeydownHandler);
     this.#mode = Mode.DEFAULT;
@@ -122,6 +122,10 @@ export default class EventPresenter {
   #handleFavoriteClick = () => {
     this.#handleDataChange({ ...this.#point, isFavorite: !this.#point.isFavorite });
   };
+
+  #handleTypeChange = (type) => this.#offersModel.getOffersByType(type);
+
+  #handleDestinationChange = (destination) => this.#destinationsModel.getDestinationByTitle(destination);
 
   #render() {
     render(this.#eventComponent, this.#eventContainer);

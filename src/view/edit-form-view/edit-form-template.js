@@ -1,9 +1,10 @@
+import { TYPES } from '../../utils/constants.js';
 import { humanizeDateAndTime } from '../../utils/utils.js';
 
 function createOfferTemplate(offer, pointId, isChecked = false) {
   const { title, price, id } = offer;
   return `<div class="event__offer-selector">
-                        <input class="event__offer-checkbox  visually-hidden" id="event-offer-${id}-${pointId}" type="checkbox" name="event-offer-${id}" ${isChecked ? 'checked' : ''}>
+                        <input class="event__offer-checkbox  visually-hidden" id="event-offer-${id}-${pointId}" type="checkbox" name="event-offer-${id}" ${isChecked ? 'checked' : ''} data-offer-id="${id}">
                         <label class="event__offer-label" for="event-offer-${id}-${pointId}">
                           <span class="event__offer-title">${title}</span>
                           &plus;&euro;&nbsp;
@@ -43,14 +44,14 @@ function createPointTypeTemplate(type, id) {
                         </div>`;
 }
 
-export function createEditFormTemplate({ point, destination, offers, allOffers, types, destinations }) {
-  const { type, basePrice, id, dateTo, dateFrom } = point;
-  const { name, pictures, description } = destination;
+export function createEditFormTemplate(state, destinations) {
+  const { type, basePrice, id, dateTo, dateFrom, offers, allOffers } = state;
+  const { name, pictures, description } = state.destination;
   const offersElement = createOffersTemplate(offers, allOffers, id);
   const picturesElement = createPhotosTemplate(pictures);
   const descriptionElement = description.length ? `<p class="event__destination-description">${description}</p>` : '';
   const hasDescriptionBlock = picturesElement.length || descriptionElement.length;
-  const pointTypesElement = types.map((innerType) => createPointTypeTemplate(innerType)).join('');
+  const pointTypesElement = TYPES.map((innerType) => createPointTypeTemplate(innerType, id)).join('');
   const destinationsElement = destinations.map((innerDestination) => `<option value="${innerDestination.name}"></option>`).join('');
 
   return `<li class="trip-events__item">
