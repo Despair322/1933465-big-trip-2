@@ -14,18 +14,12 @@ function createOfferTemplate(offer, pointId, isChecked = false) {
 }
 
 function createPhotosTemplate(photos) {
-  if (!photos.length) {
-    return '';
-  }
   return `<div class="event__photos-container"><div class="event__photos-tape">
   ${photos.map((photo) => `<img class="event__photo" src="${photo.src}" alt="${photo.description}">`).join('')}
   </div></div>`;
 }
 
 function createOffersTemplate(offers, allOffers, id) {
-  if (!allOffers.length) {
-    return '';
-  }
   return `<section class="event__section  event__section--offers">
                     <h3 class="event__section-title  event__section-title--offers">Offers</h3>
                      <div class="event__available-offers">
@@ -45,12 +39,11 @@ function createPointTypeTemplate(type, id) {
 }
 
 export function createEditFormTemplate(state, destinations) {
-  const { type, basePrice, id, dateTo, dateFrom, offers, allOffers } = state;
+  const { type, basePrice, id, dateTo, dateFrom, offers, allOffers, hasDescription, hasPictures, hasOffers, hasDescriptionBlock } = state;
   const { name, pictures, description } = state.destination;
-  const offersElement = createOffersTemplate(offers, allOffers, id);
-  const picturesElement = createPhotosTemplate(pictures);
-  const descriptionElement = description.length ? `<p class="event__destination-description">${description}</p>` : '';
-  const hasDescriptionBlock = picturesElement.length || descriptionElement.length;
+  const offersElement = hasOffers ? createOffersTemplate(offers, allOffers, id) : '';
+  const picturesElement = hasPictures ? createPhotosTemplate(pictures) : '';
+  const descriptionElement = hasDescription ? `<p class="event__destination-description">${description}</p>` : '';
   const pointTypesElement = TYPES.map((innerType) => createPointTypeTemplate(innerType, id)).join('');
   const destinationsElement = destinations.map((innerDestination) => `<option value="${innerDestination.name}"></option>`).join('');
 

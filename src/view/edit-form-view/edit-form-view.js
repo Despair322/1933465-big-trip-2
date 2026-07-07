@@ -1,5 +1,6 @@
 import { createEditFormTemplate } from './edit-form-template.js';
 import AbstractStatefulView from '../../framework/view/abstract-stateful-view.js';
+import { getDestinationFlags } from '../../utils/utils.js';
 
 export default class EditFormView extends AbstractStatefulView {
   #destinations = [];
@@ -40,7 +41,8 @@ export default class EditFormView extends AbstractStatefulView {
     }
     this.updateElement({
       destination: newDestination,
-      offers: []
+      offers: [],
+      ...getDestinationFlags(newDestination)
     });
   };
 
@@ -48,11 +50,13 @@ export default class EditFormView extends AbstractStatefulView {
     if (evt.target.tagName !== 'INPUT') {
       return;
     }
+    const newOffers = this.#handleTypeChange(evt.target.value);
     evt.preventDefault();
     this.updateElement({
-      allOffers: this.#handleTypeChange(evt.target.value),
+      allOffers: newOffers,
       type: evt.target.value,
-      offers: []
+      offers: [],
+      hasOffers: newOffers.length > 0
     });
   };
 
@@ -97,14 +101,19 @@ export default class EditFormView extends AbstractStatefulView {
   }
 
   static parseEventToState({ point, destination, offers, allOffers }) {
+    const hasOffers = offers.length > 0;
     return {
-      ...point, destination, offers, allOffers
+      ...point, destination, offers, allOffers, hasOffers, ...getDestinationFlags(destination)
     };
   }
 
   static parseStateToPoint(state) {
     const point = { ...state };
     delete point.allOffers;
+    delete point.hasDescription;
+    delete point.hasPictures;
+    delete point.hasOffers;
+    delete point.hasDescriptionBlock;
     point.destination = point.destination.id;
     point.offers = point.offers.map((offer) => offer.id);
     return point;
