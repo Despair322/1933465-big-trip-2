@@ -4,20 +4,20 @@ const DATE_FORMAT = 'MMM DD';
 const TIME_FORMAT = 'HH:mm';
 const DATETIME_FORMAT = 'DD/MM/YY HH:mm';
 
-function humanizeDate(date){
+function humanizeDate(date) {
   return date ? dayjs(date).format(DATE_FORMAT) : '';
 }
 
-function humanizeTime(date){
+function humanizeTime(date) {
   return date ? dayjs(date).format(TIME_FORMAT) : '';
 }
 
-function humanizeDateAndTime(date){
+function humanizeDateAndTime(date) {
   return date ? dayjs(date).format(DATETIME_FORMAT) : '';
 }
 
 function getTimeBetween(dateFrom, dateTo) {
-  const duration = getDuration({dateFrom, dateTo});
+  const duration = getDuration({ dateFrom, dateTo });
   const days = Math.floor(duration / 1440);
   const hours = Math.floor((duration / 60) % 24);
   const minutes = (duration % 60);
@@ -27,7 +27,7 @@ function getTimeBetween(dateFrom, dateTo) {
   return dStr + hStr + mStr;
 }
 
-function getDuration({dateFrom, dateTo}) {
+function getDuration({ dateFrom, dateTo }) {
   return dayjs(dateTo).diff(dayjs(dateFrom), 'm');
 }
 
@@ -35,4 +35,21 @@ function updateItem(items, update) {
   return items.map((item) => item.id === update.id ? update : item);
 }
 
-export { updateItem ,humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration };
+function getDestinationFlags(destination) {
+  const hasDescription = destination.description.length > 0;
+  const hasPictures = destination.pictures.length > 0;
+  const hasDescriptionBlock = hasDescription || hasPictures;
+  return { hasDescription, hasPictures, hasDescriptionBlock };
+}
+
+function deleteFlags(item) {
+  delete item.allOffers;
+  delete item.hasDescription;
+  delete item.hasPictures;
+  delete item.hasOffers;
+  delete item.hasDescriptionBlock;
+  delete item.isSubmitDisabled;
+  return item;
+}
+
+export { updateItem, humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration, getDestinationFlags, deleteFlags };
