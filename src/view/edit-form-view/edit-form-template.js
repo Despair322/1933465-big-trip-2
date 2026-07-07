@@ -1,4 +1,4 @@
-import { TYPES, Dates } from '../../utils/constants.js';
+import { TYPES } from '../../utils/constants.js';
 import { humanizeDateAndTime } from '../../utils/utils.js';
 
 function createOfferTemplate(offer, pointId, isChecked = false) {
@@ -77,10 +77,10 @@ export function createEditFormTemplate(state, destinations) {
 
               <div class="event__field-group  event__field-group--time">
                 <label class="visually-hidden" for="event-start-time-${id}">From</label>
-                <input class="event__input  event__input--time" id="event-start-time-${id}" type="text" name="event-start-time" value="${humanizeDateAndTime(dateFrom)}" data-time="${Dates.START}">
+                <input class="event__input  event__input--time" id="event-start-time-${id}" type="text" name="event-start-time" value="${humanizeDateAndTime(dateFrom)}">
                 &mdash;
                 <label class="visually-hidden" for="event-end-time-${id}">To</label>
-                <input class="event__input  event__input--time" id="event-end-time-${id}" type="text" name="event-end-time" value="${humanizeDateAndTime(dateTo)}" data-time="${Dates.END}">
+                <input class="event__input  event__input--time" id="event-end-time-${id}" type="text" name="event-end-time" value="${humanizeDateAndTime(dateTo)}">
               </div>
 
               <div class="event__field-group  event__field-group--price">
