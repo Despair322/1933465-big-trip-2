@@ -122,7 +122,6 @@ export default class EditFormView extends AbstractStatefulView {
 
   removeElement() {
     super.removeElement();
-
     this.#datepickerStart.destroy();
     this.#datepickerStart = null;
     this.#datepickerEnd.destroy();
