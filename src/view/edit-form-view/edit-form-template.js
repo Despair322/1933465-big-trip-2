@@ -1,4 +1,4 @@
-import { TYPES } from '../../utils/constants.js';
+import { TYPES, Dates } from '../../utils/constants.js';
 import { humanizeDateAndTime } from '../../utils/utils.js';
 
 function createOfferTemplate(offer, pointId, isChecked = false) {
@@ -77,10 +77,10 @@ export function createEditFormTemplate(state, destinations) {
 
               <div class="event__field-group  event__field-group--time">
                 <label class="visually-hidden" for="event-start-time-${id}">From</label>
-                <input class="event__input  event__input--time" id="event-start-time-${id}" type="text" name="event-start-time" value="${humanizeDateAndTime(dateFrom)}">
+                <input class="event__input  event__input--time" id="event-start-time-${id}" type="text" name="event-start-time" value="${humanizeDateAndTime(dateFrom)}" data-time="${Dates.START}">
                 &mdash;
                 <label class="visually-hidden" for="event-end-time-${id}">To</label>
-                <input class="event__input  event__input--time" id="event-end-time-${id}" type="text" name="event-end-time" value="${humanizeDateAndTime(dateTo)}">
+                <input class="event__input  event__input--time" id="event-end-time-${id}" type="text" name="event-end-time" value="${humanizeDateAndTime(dateTo)}" data-time="${Dates.END}">
               </div>
 
               <div class="event__field-group  event__field-group--price">
@@ -91,7 +91,7 @@ export function createEditFormTemplate(state, destinations) {
                 <input class="event__input  event__input--price" id="event-price-${id}" type="text" name="event-price" value="${basePrice}">
               </div>
 
-              <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
+              <button class="event__save-btn  btn  btn--blue" type="submit"}>Save</button>
               <button class="event__reset-btn" type="reset">Delete</button>
               <button class="event__rollup-btn" type="button">
                     <span class="visually-hidden">Open event</span>

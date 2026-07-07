@@ -52,4 +52,9 @@ const SortType = {
   OFFER: 'offer'
 };
 
-export { BLANK_DESTINATION, BLANK_POINT, TYPES, Messages, FilterType, SortType };
+const Dates = {
+  START: 'start',
+  END: 'end'
+};
+
+export { BLANK_DESTINATION, BLANK_POINT, TYPES, Messages, FilterType, SortType, Dates };

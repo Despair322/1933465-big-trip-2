@@ -42,4 +42,14 @@ function getDestinationFlags(destination) {
   return { hasDescription, hasPictures, hasDescriptionBlock };
 }
 
-export { updateItem, humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration, getDestinationFlags };
+function deleteFlags(item) {
+  delete item.allOffers;
+  delete item.hasDescription;
+  delete item.hasPictures;
+  delete item.hasOffers;
+  delete item.hasDescriptionBlock;
+  delete item.isSubmitDisabled;
+  return item;
+}
+
+export { updateItem, humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration, getDestinationFlags, deleteFlags };
