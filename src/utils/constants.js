@@ -30,18 +30,18 @@ const TYPES = [
   'restaurant'
 ];
 
-const Messages = {
-  EVERYTHING: 'Click New Event to create your first point',
-  PAST: 'There are no past events now',
-  PRESENT: 'There are no present events now',
-  FUTURE: 'There are no future events now'
-};
-
 const FilterType = {
   EVERYTHING: 'everything',
   FUTURE: 'future',
   PRESENT: 'present',
   PAST: 'past'
+};
+
+const Messages = {
+  [FilterType.EVERYTHING]: 'Click New Event to create your first point',
+  [FilterType.PAST]: 'There are no past events now',
+  [FilterType.PRESENT]: 'There are no present events now',
+  [FilterType.FUTURE]: 'There are no future events now'
 };
 
 const SortType = {
@@ -52,4 +52,16 @@ const SortType = {
   OFFER: 'offer'
 };
 
-export { BLANK_DESTINATION, BLANK_POINT, TYPES, Messages, FilterType, SortType };
+const UserAction = {
+  UPDATE_POINT: 'UPDATE_POINT',
+  ADD_POINT: 'ADD_POINT',
+  DELETE_POINT: 'DELETE_POINT'
+};
+
+const UpdateType = {
+  PATCH: 'PATCH',
+  MINOR: 'MINOR',
+  MAJOR: 'MAJOR'
+};
+
+export { BLANK_DESTINATION, BLANK_POINT, TYPES, Messages, FilterType, SortType, UserAction, UpdateType };

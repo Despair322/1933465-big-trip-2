@@ -1,6 +1,7 @@
 import EventView from '../view/event-view/event-view.js';
 import EditFormView from '../view/edit-form-view/edit-form-view.js';
 import { remove, render, replace } from '../framework/render.js';
+import { UserAction, UpdateType } from '../utils/constants.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -61,6 +62,7 @@ export default class EventPresenter {
         destinations: this.#destinations,
         onFormSubmit: this.#handleFormSubmit,
         onRollupClick: this.#handleRollupClick,
+        onDeleteClick: this.#handleDeleteClick,
         onTypeChange: this.#handleTypeChange,
         onDestinationChange: this.#handleDestinationChange
       });
@@ -114,13 +116,26 @@ export default class EventPresenter {
     }
   };
 
-  #handleFormSubmit = (point) => {
-    this.#handleDataChange(point);
+  #handleFormSubmit = (update) => {
+    this.#handleDataChange(
+      UserAction.UPDATE_POINT,
+      UpdateType.PATCH,
+      update);
     this.#closeForm();
   };
 
+  #handleDeleteClick = (point) => {
+    this.#handleDataChange(
+      UserAction.DELETE_POINT,
+      UpdateType.MINOR,
+      point);
+  };
+
   #handleFavoriteClick = () => {
-    this.#handleDataChange({ ...this.#point, isFavorite: !this.#point.isFavorite });
+    this.#handleDataChange(
+      UserAction.UPDATE_POINT,
+      UpdateType.PATCH,
+      { ...this.#point, isFavorite: !this.#point.isFavorite });
   };
 
   #handleTypeChange = (type) => this.#offersModel.getOffersByType(type);
