@@ -1,5 +1,3 @@
-import dayjs from 'dayjs';
-
 const BLANK_DESTINATION = {
   id: '',
   description: '',
@@ -9,9 +7,9 @@ const BLANK_DESTINATION = {
 
 const BLANK_POINT = {
   id: '',
-  basePrice: '',
-  dateFrom: dayjs(),
-  dateTo: dayjs(),
+  basePrice: 0,
+  dateFrom: '',
+  dateTo: '',
   destination: '',
   isFavorite: false,
   offers: [],

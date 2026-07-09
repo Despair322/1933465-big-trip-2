@@ -1,11 +1,11 @@
-import { createEditFormTemplate } from './edit-form-template.js';
+import { createEventFormTemplate } from './event-form-template.js';
 import AbstractStatefulView from '../../framework/view/abstract-stateful-view.js';
 import { deleteFlags, getDestinationFlags } from '../../utils/utils.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import dayjs from 'dayjs';
 
-export default class EditFormView extends AbstractStatefulView {
+export default class EventFormView extends AbstractStatefulView {
   #destinations = [];
   #handleFormSubmit = null;
   #handleRollupClick = null;
@@ -14,8 +14,9 @@ export default class EditFormView extends AbstractStatefulView {
   #handleTypeChange = null;
   #datepickerStart = null;
   #datepickerEnd = null;
+  #isAddForm = false;
 
-  constructor({ point, destination, offers, allOffers, destinations, onFormSubmit, onRollupClick, onDeleteClick, onTypeChange, onDestinationChange }) {
+  constructor({ point, destination, offers, allOffers, destinations, onFormSubmit, onRollupClick, onDeleteClick, onTypeChange, onDestinationChange, isAddForm = false }) {
     super();
     this.#destinations = destinations;
     this.#handleFormSubmit = onFormSubmit;
@@ -23,17 +24,18 @@ export default class EditFormView extends AbstractStatefulView {
     this.#handleDeleteClick = onDeleteClick;
     this.#handleDestinationChange = onDestinationChange;
     this.#handleTypeChange = onTypeChange;
-    this._setState(EditFormView.parseEventToState({ point, destination, offers, allOffers }));
+    this.#isAddForm = isAddForm;
+    this._setState(EventFormView.parseEventToState({ point, destination, offers, allOffers }));
     this._restoreHandlers();
   }
 
   get template() {
-    return createEditFormTemplate(this._state, this.#destinations);
+    return createEventFormTemplate(this._state, this.#destinations, this.#isAddForm);
   }
 
   _restoreHandlers() {
     this.element.addEventListener('submit', this.#formSubmitHandler);
-    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#rollupClickHandler);
+    this.element.querySelector('.event__rollup-btn')?.addEventListener('click', this.#rollupClickHandler);
     this.element.querySelector('.event__type-group').addEventListener('click', this.#typeChangeHandler);
     this.element.querySelector('.event__input--destination').addEventListener('change', this.#destinationChangeHandler);
     this.element.querySelector('.event__input--price').addEventListener('input', this.#priceChangeHandler);
@@ -100,12 +102,12 @@ export default class EditFormView extends AbstractStatefulView {
 
   #deleteClickHandler = (evt) => {
     evt.preventDefault();
-    this.#handleDeleteClick(EditFormView.parseStateToPoint(this._state));
+    this.#handleDeleteClick(EventFormView.parseStateToPoint(this._state));
   };
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    this.#handleFormSubmit(EditFormView.parseStateToPoint(this._state));
+    this.#handleFormSubmit(EventFormView.parseStateToPoint(this._state));
   };
 
   #startDateChanger = ([userDate]) => {
@@ -124,7 +126,7 @@ export default class EditFormView extends AbstractStatefulView {
 
   reset(event) {
     this.updateElement(
-      EditFormView.parseEventToState(event),
+      EventFormView.parseEventToState(event),
     );
   }
 

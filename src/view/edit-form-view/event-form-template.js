@@ -38,7 +38,7 @@ function createPointTypeTemplate(type, id) {
                         </div>`;
 }
 
-export function createEditFormTemplate(state, destinations) {
+export function createEventFormTemplate(state, destinations, isAddForm) {
   const { type, basePrice, id, dateTo, dateFrom, offers, allOffers, hasDescription, hasPictures, hasOffers, hasDescriptionBlock } = state;
   const { name, pictures, description } = state.destination;
   const offersElement = hasOffers ? createOffersTemplate(offers, allOffers, id) : '';
@@ -91,17 +91,16 @@ export function createEditFormTemplate(state, destinations) {
                 <input class="event__input  event__input--price" id="event-price-${id}" type="text" name="event-price" value="${basePrice}">
               </div>
 
-              <button class="event__save-btn  btn  btn--blue" type="submit"}>Save</button>
+              <button class="event__save-btn  btn  btn--blue" type="submit"}>${isAddForm ? 'Add' : 'Save'}</button>
               <button class="event__reset-btn" type="reset">Delete</button>
-              <button class="event__rollup-btn" type="button">
+              ${isAddForm ? '' : `<button class="event__rollup-btn" type="button">
                     <span class="visually-hidden">Open event</span>
-                  </button>
+                  </button>`}
             </header>
             <section class="event__details">
               ${offersElement}
 
-              ${hasDescriptionBlock ?
-    `<section class="event__section  event__section--destination">
+              ${hasDescriptionBlock ? `<section class="event__section  event__section--destination">
                   <h3 class="event__section-title  event__section-title--destination">Destination</h3>
                     ${descriptionElement}
                     ${picturesElement}

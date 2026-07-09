@@ -5,31 +5,50 @@ import DestinationsModel from './model/destinations-model.js';
 import FilterModel from './model/filter-model.js';
 import FilterPresenter from './presenter/filter-presenter.js';
 import { generateSort } from './mock/sort.js';
+import NewPointButtonView from './view/new-point-button-view/new-Point-button-view.js';
+import { render } from './framework/render.js';
 
 const siteFiltersElement = document.querySelector('.trip-controls__filters');
 const siteBoardElement = document.querySelector('.trip-events');
+const siteHeaderElement = document.querySelector('.trip-main');
 
 const pointsModel = new PointsModel();
-pointsModel.init();
 const offersModel = new OffersModel();
-offersModel.init();
 const destinationsModel = new DestinationsModel();
-destinationsModel.init();
 const filterModel = new FilterModel();
+pointsModel.init();
+offersModel.init();
+destinationsModel.init();
 const sort = generateSort();
 const filterPresenter = new FilterPresenter({
   filterContainer: siteFiltersElement,
   filterModel: filterModel,
   pointsModel: pointsModel,
 });
-filterPresenter.init();
 const boardPresenter = new BoardPresenter({
   boardContainer: siteBoardElement,
   pointsModel: pointsModel,
   offersModel: offersModel,
   destinationsModel: destinationsModel,
   filterModel: filterModel,
-  sort: sort
+  sort: sort,
+  onNewPointDestroy: handleNewPointFormClose
 });
+
+const newPointButtonComponent = new NewPointButtonView({
+  onClick: handleNewPointButtonClick
+});
+
+function handleNewPointFormClose() {
+  newPointButtonComponent.element.disabled = false;
+}
+
+function handleNewPointButtonClick(){
+  boardPresenter.createPoint();
+  newPointButtonComponent.element.disabled = true;
+}
+
+render(newPointButtonComponent, siteHeaderElement);
+filterPresenter.init();
 boardPresenter.init();
 
