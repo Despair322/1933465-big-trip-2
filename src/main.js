@@ -5,7 +5,7 @@ import DestinationsModel from './model/destinations-model.js';
 import FilterModel from './model/filter-model.js';
 import FilterPresenter from './presenter/filter-presenter.js';
 import { generateSort } from './mock/sort.js';
-import NewPointButtonView from './view/new-point-button-view/new-Point-button-view.js';
+import NewPointButtonView from './view/new-point-button-view/new-point-button-view.js';
 import { render } from './framework/render.js';
 
 const siteFiltersElement = document.querySelector('.trip-controls__filters');
