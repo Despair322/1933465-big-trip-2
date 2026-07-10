@@ -15,7 +15,7 @@ export default class EventFormView extends AbstractStatefulView {
   #datepickerStart = null;
   #datepickerEnd = null;
   #isAddForm = false;
-
+  #submitButton = null;
   constructor({ point, destination, offers, allOffers, destinations, onFormSubmit, onRollupClick, onDeleteClick, onTypeChange, onDestinationChange, isAddForm = false }) {
     super();
     this.#destinations = destinations;
@@ -27,6 +27,10 @@ export default class EventFormView extends AbstractStatefulView {
     this.#isAddForm = isAddForm;
     this._setState(EventFormView.parseEventToState({ point, destination, offers, allOffers }));
     this._restoreHandlers();
+    this.#submitButton = this.element.querySelector('.event__save-btn');
+    if(this.#isAddForm) {
+      this.#submitButton.disabled = true;
+    }
   }
 
   get template() {
@@ -37,17 +41,42 @@ export default class EventFormView extends AbstractStatefulView {
     this.element.addEventListener('submit', this.#formSubmitHandler);
     this.element.querySelector('.event__rollup-btn')?.addEventListener('click', this.#rollupClickHandler);
     this.element.querySelector('.event__type-group').addEventListener('click', this.#typeChangeHandler);
-    this.element.querySelector('.event__input--destination').addEventListener('change', this.#destinationChangeHandler);
+    this.element.querySelector('.event__input--destination').addEventListener('input', this.#destinationChangeHandler);
     this.element.querySelector('.event__input--price').addEventListener('input', this.#priceChangeHandler);
     this.element.querySelector('.event__section--offers')?.addEventListener('click', this.#offersChangeHandler);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#deleteClickHandler);
     this.#setDatepickers();
   }
 
+  #validateForm() {
+    if (!this._state.destination) {
+      this.#submitButton.disabled = true;
+      return;
+    }
+    if (this._state.dateFrom > this._state.dateTo) {
+      this.#submitButton.disabled = true;
+      return;
+    }
+    if (!this._state.dateFrom || this._state.dateFrom.length === 0) {
+      this.#submitButton.disabled = true;
+      return;
+    }
+    if (!this._state.dateTo || this._state.dateTo.length === 0) {
+      this.#submitButton.disabled = true;
+      return;
+    }
+    if (!this._state.basePrice && this._state.basePrice !== 0) {
+      this.#submitButton.disabled = true;
+      return;
+    }
+    this.#submitButton.disabled = false;
+  }
+
   #destinationChangeHandler = (evt) => {
     evt.preventDefault();
     const newDestination = this.#handleDestinationChange(evt.target.value);
     if (!newDestination) {
+      this.#submitButton.disabled = true;
       return;
     }
     this.updateElement({
@@ -78,6 +107,7 @@ export default class EventFormView extends AbstractStatefulView {
         basePrice: evt.target.value,
       });
     }
+    this.#validateForm();
   };
 
   #offersChangeHandler = (evt) => {
@@ -107,6 +137,9 @@ export default class EventFormView extends AbstractStatefulView {
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
+    if (this.#submitButton.disabled) {
+      return;
+    }
     this.#handleFormSubmit(EventFormView.parseStateToPoint(this._state));
   };
 
@@ -118,10 +151,12 @@ export default class EventFormView extends AbstractStatefulView {
       this.#datepickerEnd.set('defaultDate', userDate);
       this.updateElement({ dateTo: userDate });
     }
+    this.#validateForm();
   };
 
   #endDateChanger = ([userDate]) => {
     this._setState({ dateTo: userDate });
+    this.#validateForm();
   };
 
   reset(event) {
@@ -164,6 +199,12 @@ export default class EventFormView extends AbstractStatefulView {
       },
     );
 
+  }
+
+  updateElement(update) {
+    super.updateElement(update);
+    this.#submitButton = this.element.querySelector('.event__save-btn');
+    this.#validateForm();
   }
 
   static parseEventToState({ point, destination, offers, allOffers }) {

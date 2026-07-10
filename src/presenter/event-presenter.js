@@ -1,5 +1,5 @@
 import EventView from '../view/event-view/event-view.js';
-import EditFormView from '../view/edit-form-view/event-form-view.js';
+import EventFormView from '../view/event-form-view/event-form-view.js';
 import { remove, render, replace } from '../framework/render.js';
 import { UserAction, UpdateType } from '../utils/constants.js';
 
@@ -53,7 +53,7 @@ export default class EventPresenter {
         onFavoriteClick: this.#handleFavoriteClick
       }
     );
-    this.#editFormComponent = new EditFormView(
+    this.#editFormComponent = new EventFormView(
       {
         point: this.#point,
         destination: this.#destination,

@@ -1,4 +1,4 @@
-import EditFormView from '../view/edit-form-view/event-form-view.js';
+import EventFormView from '../view/event-form-view/event-form-view.js';
 import { remove, render, RenderPosition } from '../framework/render.js';
 import { UserAction, UpdateType, BLANK_POINT, BLANK_DESTINATION } from '../utils/constants.js';
 import {nanoid} from 'nanoid';
@@ -33,7 +33,7 @@ export default class NewPointPresenter {
     if (this.#addFormComponent !== null) {
       return;
     }
-    this.#addFormComponent = new EditFormView(
+    this.#addFormComponent = new EventFormView(
       {
         point: BLANK_POINT,
         destination: BLANK_DESTINATION,
