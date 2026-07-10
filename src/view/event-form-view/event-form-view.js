@@ -28,7 +28,7 @@ export default class EventFormView extends AbstractStatefulView {
     this._setState(EventFormView.parseEventToState({ point, destination, offers, allOffers }));
     this._restoreHandlers();
     this.#submitButton = this.element.querySelector('.event__save-btn');
-    if(this.#isAddForm) {
+    if (this.#isAddForm) {
       this.#submitButton.disabled = true;
     }
   }
@@ -49,7 +49,7 @@ export default class EventFormView extends AbstractStatefulView {
   }
 
   #validateForm() {
-    if (!this._state.destination) {
+    if (!this._state.destination.id) {
       this.#submitButton.disabled = true;
       return;
     }
@@ -65,26 +65,12 @@ export default class EventFormView extends AbstractStatefulView {
       this.#submitButton.disabled = true;
       return;
     }
-    if (!this._state.basePrice && this._state.basePrice !== 0) {
+    if (this._state.basePrice.trim() === '') {
       this.#submitButton.disabled = true;
       return;
     }
     this.#submitButton.disabled = false;
   }
-
-  #destinationChangeHandler = (evt) => {
-    evt.preventDefault();
-    const newDestination = this.#handleDestinationChange(evt.target.value);
-    if (!newDestination) {
-      this.#submitButton.disabled = true;
-      return;
-    }
-    this.updateElement({
-      destination: newDestination,
-      offers: [],
-      ...getDestinationFlags(newDestination)
-    });
-  };
 
   #typeChangeHandler = (evt) => {
     if (evt.target.tagName !== 'INPUT') {
@@ -100,13 +86,28 @@ export default class EventFormView extends AbstractStatefulView {
     });
   };
 
-  #priceChangeHandler = (evt) => {
-    const price = Number(evt.target.value);
-    if (price && price >= 0) {
-      this._setState({
-        basePrice: evt.target.value,
-      });
+  #destinationChangeHandler = (evt) => {
+    evt.preventDefault();
+    const newDestination = this.#handleDestinationChange(evt.target.value);
+    if (!newDestination) {
+      this.#submitButton.disabled = true;
+      return;
     }
+    this.updateElement({
+      destination: newDestination,
+      offers: [],
+      ...getDestinationFlags(newDestination)
+    });
+  };
+
+  #priceChangeHandler = (evt) => {
+    if (evt.target.value.trim() === '' || evt.target.value < 0 || isNaN(evt.target.value)) {
+      this.#submitButton.disabled = true;
+      return;
+    }
+    this._setState({
+      basePrice: Number(evt.target.value),
+    });
     this.#validateForm();
   };
 
@@ -125,6 +126,22 @@ export default class EventFormView extends AbstractStatefulView {
     }
   };
 
+  #startDateChanger = ([userDate]) => {
+    this._setState({ dateFrom: userDate });
+    this.#datepickerEnd.set('minDate', userDate);
+
+    if (dayjs(this._state.dateTo) < dayjs(userDate)) {
+      this.#datepickerEnd.set('defaultDate', userDate);
+      this.updateElement({ dateTo: userDate });
+    }
+    this.#validateForm();
+  };
+
+  #endDateChanger = ([userDate]) => {
+    this._setState({ dateTo: userDate });
+    this.#validateForm();
+  };
+
   #rollupClickHandler = (evt) => {
     evt.preventDefault();
     this.#handleRollupClick();
@@ -141,22 +158,6 @@ export default class EventFormView extends AbstractStatefulView {
       return;
     }
     this.#handleFormSubmit(EventFormView.parseStateToPoint(this._state));
-  };
-
-  #startDateChanger = ([userDate]) => {
-    this._setState({ dateFrom: userDate });
-
-    if (dayjs(this._state.dateTo) < dayjs(userDate)) {
-      this.#datepickerEnd.set('minDate', userDate);
-      this.#datepickerEnd.set('defaultDate', userDate);
-      this.updateElement({ dateTo: userDate });
-    }
-    this.#validateForm();
-  };
-
-  #endDateChanger = ([userDate]) => {
-    this._setState({ dateTo: userDate });
-    this.#validateForm();
   };
 
   reset(event) {
