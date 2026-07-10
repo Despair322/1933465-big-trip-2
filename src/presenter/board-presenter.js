@@ -165,6 +165,7 @@ export default class BoardPresenter {
 
   #handleModeChange = () => {
     this.#eventPresenters.forEach((presenter) => presenter.resetView());
+    this.#newPointPresenter.destroy();
   };
 
   #renderEvent(point) {
