@@ -3,13 +3,31 @@ import AbstractView from '../../framework/view/abstract-view.js';
 
 export default class FilterView extends AbstractView {
   #filters = null;
+  #generatedFilters = null;
+  #currentFilterType = null;
+  #handleFilterTypeChange = null;
 
-  constructor({ filters }) {
+  constructor({ filters, currentFilterType, onFilterTypeChange }) {
     super();
     this.#filters = filters;
+    this.#currentFilterType = currentFilterType;
+    this.#handleFilterTypeChange = onFilterTypeChange;
+    this.#initEventListeners();
+  }
+
+  #initEventListeners() {
+    this.element.addEventListener('click', this.#filterTypeChangeHandler);
   }
 
   get template() {
-    return createFilterTemplate(this.#filters);
+    return createFilterTemplate(this.#filters, this.#currentFilterType);
   }
+
+  #filterTypeChangeHandler = (evt) => {
+    if (evt.target.tagName !== 'INPUT') {
+      return;
+    }
+    evt.preventDefault();
+    this.#handleFilterTypeChange(evt.target.dataset.filterType);
+  };
 }

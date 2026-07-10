@@ -31,10 +31,6 @@ function getDuration({ dateFrom, dateTo }) {
   return dayjs(dateTo).diff(dayjs(dateFrom), 'm');
 }
 
-function updateItem(items, update) {
-  return items.map((item) => item.id === update.id ? update : item);
-}
-
 function getDestinationFlags(destination) {
   const hasDescription = destination.description.length > 0;
   const hasPictures = destination.pictures.length > 0;
@@ -52,4 +48,4 @@ function deleteFlags(item) {
   return item;
 }
 
-export { updateItem, humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration, getDestinationFlags, deleteFlags };
+export { humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration, getDestinationFlags, deleteFlags };

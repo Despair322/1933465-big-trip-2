@@ -9,9 +9,9 @@ function createSortItemTemplate(type, isActive, isChecked) {
 
 }
 
-export function createSortTemplate(sort) {
+export function createSortTemplate(sort, currentSortType) {
   return `<form class="trip-events__trip-sort  trip-sort" action="#" method="get">
-            ${sort.map(({ type, isActive }, index) => createSortItemTemplate(type, isActive, index === 0)).join('')}
+            ${sort.map(({ type, isActive }) => createSortItemTemplate(type, isActive, type === currentSortType)).join('')}
 
           </form>`;
 }
