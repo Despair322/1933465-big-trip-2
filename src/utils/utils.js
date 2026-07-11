@@ -1,4 +1,6 @@
 import dayjs from 'dayjs';
+import { Sorts } from './sort';
+import { SortType } from './constants';
 
 const DATE_FORMAT = 'MMM DD';
 const TIME_FORMAT = 'HH:mm';
@@ -31,21 +33,13 @@ function getDuration({ dateFrom, dateTo }) {
   return dayjs(dateTo).diff(dayjs(dateFrom), 'm');
 }
 
-function getDestinationFlags(destination) {
-  const hasDescription = destination.description.length > 0;
-  const hasPictures = destination.pictures.length > 0;
-  const hasDescriptionBlock = hasDescription || hasPictures;
-  return { hasDescription, hasPictures, hasDescriptionBlock };
+function generateSort() {
+  return Object.entries(SortType).map(
+    ([, value]) => ({
+      type: value,
+      isActive: Object.keys(Sorts).includes(value),
+    })
+  );
 }
 
-function deleteFlags(item) {
-  delete item.allOffers;
-  delete item.hasDescription;
-  delete item.hasPictures;
-  delete item.hasOffers;
-  delete item.hasDescriptionBlock;
-  delete item.isSubmitDisabled;
-  return item;
-}
-
-export { humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration, getDestinationFlags, deleteFlags };
+export { humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration, generateSort };

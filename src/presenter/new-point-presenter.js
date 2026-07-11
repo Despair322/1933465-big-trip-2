@@ -1,7 +1,7 @@
 import EventFormView from '../view/event-form-view/event-form-view.js';
 import { remove, render, RenderPosition } from '../framework/render.js';
 import { UserAction, UpdateType, BLANK_POINT, BLANK_DESTINATION } from '../utils/constants.js';
-import {nanoid} from 'nanoid';
+import { nanoid } from 'nanoid';
 
 export default class NewPointPresenter {
 
@@ -18,36 +18,35 @@ export default class NewPointPresenter {
   #handleDataChange = null;
   #handleModeChange = null;
   #handleDestroy = null;
+  #handleCloseClick = null;
 
-  constructor({ addFormContainer, offersModel, destinationsModel, onDataChange, onDestroy }) {
-    this.#addFormContainer = addFormContainer;
+  constructor({ offersModel, destinationsModel, onDataChange, onCloseClick }) {
     this.#offersModel = offersModel;
     this.#destinationsModel = destinationsModel;
     this.#destinations = this.#destinationsModel.destinations;
     this.#handleDataChange = onDataChange;
-    this.#handleDestroy = onDestroy;
+    this.#handleCloseClick = onCloseClick;
   }
 
-  init() {
+  init({ addFormContainer }) {
+    this.#addFormContainer = addFormContainer;
     this.#allOffers = this.#offersModel.getOffersByType(BLANK_POINT.type);
-    if (this.#addFormComponent !== null) {
-      return;
+    if (this.#addFormComponent === null) {
+      this.#addFormComponent = new EventFormView(
+        {
+          point: BLANK_POINT,
+          destination: BLANK_DESTINATION,
+          offers: [],
+          allOffers: this.#allOffers,
+          destinations: this.#destinations,
+          onFormSubmit: this.#handleFormSubmit,
+          onDeleteClick: this.#handleDeleteClick,
+          onTypeChange: this.#handleTypeChange,
+          onDestinationChange: this.#handleDestinationChange,
+          isAddForm: true
+        });
     }
-    this.#addFormComponent = new EventFormView(
-      {
-        point: BLANK_POINT,
-        destination: BLANK_DESTINATION,
-        offers: [],
-        allOffers: this.#allOffers,
-        destinations: this.#destinations,
-        onFormSubmit: this.#handleFormSubmit,
-        onDeleteClick: this.#handleDeleteClick,
-        onTypeChange: this.#handleTypeChange,
-        onDestinationChange: this.#handleDestinationChange,
-        isAddForm: true
-      });
-    render(this.#addFormComponent, this.#addFormContainer, RenderPosition.AFTERBEGIN);
-    window.addEventListener('keydown', this.#escapeKeydownHandler);
+    this.#render();
   }
 
   destroy() {
@@ -57,7 +56,12 @@ export default class NewPointPresenter {
     remove(this.#addFormComponent);
     this.#addFormComponent = null;
     window.removeEventListener('keydown', this.#escapeKeydownHandler);
-    this.#handleDestroy();
+    this.#handleDataChange(UserAction.CLOSE_NEW_POINT_FORM, UpdateType.FORM);
+  }
+
+  #render() {
+    render(this.#addFormComponent, this.#addFormContainer, RenderPosition.AFTERBEGIN);
+    window.addEventListener('keydown', this.#escapeKeydownHandler);
   }
 
   #escapeKeydownHandler = (evt) => {
@@ -70,11 +74,15 @@ export default class NewPointPresenter {
     this.#handleDataChange(
       UserAction.ADD_POINT,
       UpdateType.MINOR,
-      {...update, id: nanoid()});
+      { ...update, id: nanoid() });
     this.destroy();
   };
 
   #handleDeleteClick = () => {
+    this.#handleDataChange(
+      UserAction.CLOSE_NEW_POINT_FORM,
+      UpdateType.FORM
+    );
     this.destroy();
   };
 

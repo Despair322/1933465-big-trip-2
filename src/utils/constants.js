@@ -8,8 +8,8 @@ const BLANK_DESTINATION = {
 const BLANK_POINT = {
   id: '',
   basePrice: 0,
-  dateFrom: '',
-  dateTo: '',
+  dateFrom: undefined,
+  dateTo: undefined,
   destination: '',
   isFavorite: false,
   offers: [],
@@ -50,16 +50,26 @@ const SortType = {
   OFFER: 'offer'
 };
 
+const FormType = {
+  ADD: 'ADD',
+  EDIT: 'EDIT'
+};
+
 const UserAction = {
   UPDATE_POINT: 'UPDATE_POINT',
   ADD_POINT: 'ADD_POINT',
-  DELETE_POINT: 'DELETE_POINT'
+  DELETE_POINT: 'DELETE_POINT',
+  OPEN_NEW_POINT_FORM: 'OPEN_NEW_POINT_FORM',
+  CLOSE_NEW_POINT_FORM: 'CLOSE_NEW_POINT_FORM',
+  OPEN_EDIT_POINT_FORM: 'OPEN_EDIT_POINT_FORM',
+  CLOSE_EDIT_POINT_FORM: 'CLOSE_EDIT_POINT_FORM'
 };
 
 const UpdateType = {
   PATCH: 'PATCH',
   MINOR: 'MINOR',
-  MAJOR: 'MAJOR'
+  MAJOR: 'MAJOR',
+  FORM: 'FORM',
 };
 
-export { BLANK_DESTINATION, BLANK_POINT, TYPES, Messages, FilterType, SortType, UserAction, UpdateType };
+export { BLANK_DESTINATION, BLANK_POINT, TYPES, Messages, FilterType, SortType, FormType, UserAction, UpdateType };

@@ -1,7 +1,9 @@
 import EventView from '../view/event-view/event-view.js';
 import EventFormView from '../view/event-form-view/event-form-view.js';
 import { remove, render, replace } from '../framework/render.js';
-import { UserAction, UpdateType } from '../utils/constants.js';
+import { UserAction, UpdateType, SortType } from '../utils/constants.js';
+import dayjs from 'dayjs';
+import { getDuration } from '../utils/utils.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -22,6 +24,7 @@ export default class EventPresenter {
   #allOffers = [];
   #destinations = [];
   #mode = Mode.DEFAULT;
+  #currentSortType = null;
 
   #handleDataChange = null;
   #handleModeChange = null;
@@ -35,11 +38,14 @@ export default class EventPresenter {
     this.#handleModeChange = onModeChange;
   }
 
-  init(point) {
+  init({ point, currentSortType }) {
     this.#point = point;
     this.#destination = this.#destinationsModel.getDestinationById(this.#point.destination);
     this.#offers = this.#point.offers.map((offer) => this.#offersModel.getOfferByTypeAndId(this.#point.type, offer));
     this.#allOffers = this.#offersModel.getOffersByType(this.#point.type);
+    if(!this.#currentSortType) {
+      this.#currentSortType = currentSortType;
+    }
 
     const prevEventComponent = this.#eventComponent;
     const prevEditFormComponent = this.#editFormComponent;
@@ -97,6 +103,7 @@ export default class EventPresenter {
     replace(this.#eventComponent, this.#editFormComponent);
     window.removeEventListener('keydown', this.#escapeKeydownHandler);
     this.#mode = Mode.DEFAULT;
+    this.#handleDataChange(UserAction.CLOSE_EDIT_POINT_FORM, UpdateType.FORM);
   };
 
   #openForm() {
@@ -104,6 +111,7 @@ export default class EventPresenter {
     replace(this.#editFormComponent, this.#eventComponent);
     window.addEventListener('keydown', this.#escapeKeydownHandler);
     this.#mode = Mode.EDITING;
+    this.#handleDataChange(UserAction.OPEN_EDIT_POINT_FORM, UpdateType.FORM);
   }
 
   #handleRollupClick = () => {
@@ -117,9 +125,27 @@ export default class EventPresenter {
   };
 
   #handleFormSubmit = (update) => {
+    let updateType = UpdateType.PATCH;
+    switch (this.#currentSortType) {
+      case SortType.DAY:
+        if (!dayjs(update.dateFrom).isSame(dayjs(this.#point.dateFrom))) {
+          updateType = UpdateType.MINOR;
+        }
+        break;
+      case SortType.PRICE:
+        if (update.basePrice !== this.#point.basePrice) {
+          updateType = UpdateType.MINOR;
+        }
+        break;
+      case SortType.TIME:
+        if (getDuration(update) !== getDuration(this.#point)) {
+          updateType = UpdateType.MINOR;
+        }
+        break;
+    }
     this.#handleDataChange(
       UserAction.UPDATE_POINT,
-      UpdateType.PATCH,
+      updateType,
       update);
     this.#closeForm();
   };

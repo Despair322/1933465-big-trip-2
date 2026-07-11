@@ -1,6 +1,6 @@
 import { createEventFormTemplate } from './event-form-template.js';
 import AbstractStatefulView from '../../framework/view/abstract-stateful-view.js';
-import { deleteFlags, getDestinationFlags } from '../../utils/utils.js';
+import { deleteFlags, getFlags } from '../../utils/destination.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import dayjs from 'dayjs';
@@ -53,19 +53,11 @@ export default class EventFormView extends AbstractStatefulView {
       this.#submitButton.disabled = true;
       return;
     }
-    if (this._state.dateFrom > this._state.dateTo) {
+    if (!this._state?.dateFrom?.getTime() || !this._state?.dateTo?.getTime()) {
       this.#submitButton.disabled = true;
       return;
     }
-    if (!this._state.dateFrom || this._state.dateFrom.length === 0) {
-      this.#submitButton.disabled = true;
-      return;
-    }
-    if (!this._state.dateTo || this._state.dateTo.length === 0) {
-      this.#submitButton.disabled = true;
-      return;
-    }
-    if (this._state.basePrice.trim() === '') {
+    if (!this._state.basePrice.toString().trim()) {
       this.#submitButton.disabled = true;
       return;
     }
@@ -96,19 +88,19 @@ export default class EventFormView extends AbstractStatefulView {
     this.updateElement({
       destination: newDestination,
       offers: [],
-      ...getDestinationFlags(newDestination)
+      ...getFlags(newDestination)
     });
   };
 
   #priceChangeHandler = (evt) => {
-    if (evt.target.value.trim() === '' || evt.target.value < 0 || isNaN(evt.target.value)) {
+    if (!evt.target.value.trim() || evt.target.value < 0 || isNaN(evt.target.value)) {
       this.#submitButton.disabled = true;
       return;
     }
+    this.#submitButton.disabled = false;
     this._setState({
       basePrice: Number(evt.target.value),
     });
-    this.#validateForm();
   };
 
   #offersChangeHandler = (evt) => {
@@ -129,16 +121,12 @@ export default class EventFormView extends AbstractStatefulView {
   #startDateChanger = ([userDate]) => {
     this._setState({ dateFrom: userDate });
     this.#datepickerEnd.set('minDate', userDate);
-
-    if (dayjs(this._state.dateTo) < dayjs(userDate)) {
-      this.#datepickerEnd.set('defaultDate', userDate);
-      this.updateElement({ dateTo: userDate });
-    }
     this.#validateForm();
   };
 
   #endDateChanger = ([userDate]) => {
     this._setState({ dateTo: userDate });
+    this.#datepickerStart.set('maxDate', userDate);
     this.#validateForm();
   };
 
@@ -168,35 +156,42 @@ export default class EventFormView extends AbstractStatefulView {
 
   removeElement() {
     super.removeElement();
-    this.#datepickerStart.destroy();
-    this.#datepickerStart = null;
-    this.#datepickerEnd.destroy();
-    this.#datepickerEnd = null;
+    if (this.#datepickerStart) {
+      this.#datepickerStart.destroy();
+      this.#datepickerStart = null;
+    }
+
+    if (this.#datepickerEnd) {
+      this.#datepickerEnd.destroy();
+      this.#datepickerEnd = null;
+    }
   }
 
   #setDatepickers() {
+    const commonOptions = {
+      dateFormat: 'd/m/y H:i',
+      enableTime: true,
+      // eslint-disable-next-line camelcase
+      time_24hr: true,
+      locale: { firstDayOfWeek: 1 },
+    };
     this.#datepickerStart = flatpickr(
       this.element.querySelector('[id^="event-start-time"]'),
       {
-        dateFormat: 'd/m/y H:i',
-        enableTime: true,
-        // eslint-disable-next-line camelcase
-        time_24hr: true,
+        ...commonOptions,
         defaultDate: this._state.dateFrom,
-        onChange: this.#startDateChanger,
-        minDate: 'today'
+        onClose: this.#startDateChanger,
+        minDate: 'today',
+        maxDate: this._state.dateTo
       },
     );
     this.#datepickerEnd = flatpickr(
       this.element.querySelector('[id^="event-end-time"]'),
       {
-        dateFormat: 'd/m/y H:i',
-        enableTime: true,
-        // eslint-disable-next-line camelcase
-        time_24hr: true,
+        ...commonOptions,
         defaultDate: this._state.dateTo,
-        minDate: this._state.dateFrom,
-        onChange: this.#endDateChanger
+        minDate: this._state.dateFrom || 'today',
+        onClose: this.#endDateChanger
       },
     );
 
@@ -210,8 +205,10 @@ export default class EventFormView extends AbstractStatefulView {
 
   static parseEventToState({ point, destination, offers, allOffers }) {
     const hasOffers = offers.length > 0;
+    const dateFrom = point.dateFrom ? dayjs(point.dateFrom).$d : undefined;
+    const dateTo = point.dateTo ? dayjs(point.dateTo).$d : undefined;
     return {
-      ...point, destination, offers, allOffers, hasOffers, ...getDestinationFlags(destination)
+      ...point, dateFrom, dateTo, destination, offers, allOffers, hasOffers, ...getFlags(destination)
     };
   }
 
