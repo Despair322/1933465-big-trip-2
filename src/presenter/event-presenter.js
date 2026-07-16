@@ -43,7 +43,7 @@ export default class EventPresenter {
     this.#destination = this.#destinationsModel.getDestinationById(this.#point.destination);
     this.#offers = this.#point.offers.map((offer) => this.#offersModel.getOfferByTypeAndId(this.#point.type, offer));
     this.#allOffers = this.#offersModel.getOffersByType(this.#point.type);
-    if(!this.#currentSortType) {
+    if (!this.#currentSortType) {
       this.#currentSortType = currentSortType;
     }
 
@@ -81,7 +81,10 @@ export default class EventPresenter {
       replace(this.#eventComponent, prevEventComponent);
     }
     if (this.#mode === Mode.EDITING) {
-      replace(this.#editFormComponent, prevEditFormComponent);
+      replace(this.#eventComponent, prevEditFormComponent);
+      this.#mode = Mode.DEFAULT;
+      // replace(this.#editFormComponent, prevEditFormComponent);
+
     }
     remove(prevEventComponent);
     remove(prevEditFormComponent);
@@ -178,5 +181,34 @@ export default class EventPresenter {
     } else {
       this.#closeForm();
     }
+  }
+
+  setSaving() {
+    if (this.#mode === Mode.EDITING) {
+      this.#editFormComponent.updateElement({
+        isSaving: true,
+        isDisabled: true
+      });
+    }
+  }
+
+  setDeleting() {
+    if (this.#mode === Mode.EDITING) {
+      this.#editFormComponent.updateElement({
+        isDeleting: true,
+        isDisabled: true
+      });
+    }
+  }
+
+  setAborting() {
+    const resetFormState = () => {
+      this.#editFormComponent.updateElement({
+        isSaving: false,
+        isDisabled: false,
+        isDeleting: false
+      });
+    };
+    this.#editFormComponent.shake(resetFormState);
   }
 }

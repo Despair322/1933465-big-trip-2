@@ -38,6 +38,10 @@ export default class EventsPresenter {
     return this.#eventPresenters;
   }
 
+  get newPointPresenter() {
+    return this.#newPointPresenter;
+  }
+
   #render() {
     if (this.#formModel.form === FormType.ADD) {
       if (this.#newPointPresenter === null) {

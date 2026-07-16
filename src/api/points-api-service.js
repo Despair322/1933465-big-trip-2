@@ -3,7 +3,36 @@ import ApiService from '../framework/api-service.js';
 const Method = {
   GET: 'GET',
   PUT: 'PUT',
+  POST: 'POST',
+  DELETE: 'DELETE',
 };
+
+class PointAdapter {
+  constructor(point) {
+    this.result = point;
+  }
+
+  adaptToServer() {
+    const adaptedPoint = {
+      ...this.result,
+      'date_to': this.result.dateTo,
+      'date_from': this.result.dateFrom,
+      'is_favorite': this.result.isFavorite,
+      'base_price': this.result.basePrice
+    };
+    delete adaptedPoint.dateTo;
+    delete adaptedPoint.dateFrom;
+    delete adaptedPoint.isFavorite;
+    delete adaptedPoint.basePrice;
+    return new PointAdapter(adaptedPoint);
+  }
+
+  adaptToAdding() {
+    const adaptedPoint = { ...this.result };
+    delete adaptedPoint.id;
+    return new PointAdapter(adaptedPoint);
+  }
+}
 
 export default class PointsApiService extends ApiService {
 
@@ -17,7 +46,7 @@ export default class PointsApiService extends ApiService {
     const response = await this._load({
       url: `points/${point.id}`,
       method: Method.PUT,
-      body: JSON.stringify(this.#adaptToServer(point)),
+      body: JSON.stringify(new PointAdapter(point).adaptToServer().result),
       headers: new Headers({ 'Content-Type': 'application/json' }),
     });
 
@@ -25,19 +54,25 @@ export default class PointsApiService extends ApiService {
     return parseResponse;
   }
 
-  #adaptToServer(point) {
-    const adaptedPoint = {
-      ...point,
-      'date_to': point.dateTo,
-      'date_from': point.dateFrom,
-      'is_favorite': point.isFavorite,
-      'base_price': point.basePrice
-    };
-    delete adaptedPoint.dateTo;
-    delete adaptedPoint.dateFrom;
-    delete adaptedPoint.isFavorite;
-    delete adaptedPoint.basePrice;
-    return adaptedPoint;
+  async addPoint(point) {
+    const response = await this._load({
+      url: 'points',
+      method: Method.POST,
+      body: JSON.stringify(new PointAdapter(point).adaptToServer().adaptToAdding().result),
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+    });
+
+    const parsedResponse = await ApiService.parseResponse(response);
+    return parsedResponse;
   }
 
+  async deletePoint(point) {
+    const response = await this._load({
+      url: `points/${point.id}`,
+      method: Method.DELETE,
+    });
+    return response;
+  }
 }
+
+

@@ -57,6 +57,10 @@ export default class EventFormView extends AbstractStatefulView {
       this.#submitButton.disabled = true;
       return;
     }
+    if(this._state?.dateFrom?.getTime() >= this._state?.dateTo?.getTime()){
+      this.#submitButton.disabled = true;
+      return;
+    }
     if (!this._state.basePrice.toString().trim()) {
       this.#submitButton.disabled = true;
       return;
@@ -88,7 +92,7 @@ export default class EventFormView extends AbstractStatefulView {
     this.updateElement({
       destination: newDestination,
       offers: [],
-      ...getFlags(newDestination)
+      ...getFlags(newDestination),
     });
   };
 
@@ -97,10 +101,10 @@ export default class EventFormView extends AbstractStatefulView {
       this.#submitButton.disabled = true;
       return;
     }
-    this.#submitButton.disabled = false;
     this._setState({
       basePrice: Number(evt.target.value),
     });
+    this.#validateForm();
   };
 
   #offersChangeHandler = (evt) => {
@@ -208,7 +212,7 @@ export default class EventFormView extends AbstractStatefulView {
     const dateFrom = point.dateFrom ? dayjs(point.dateFrom).$d : undefined;
     const dateTo = point.dateTo ? dayjs(point.dateTo).$d : undefined;
     return {
-      ...point, dateFrom, dateTo, destination, offers, allOffers, hasOffers, ...getFlags(destination)
+      ...point, dateFrom, dateTo, destination, offers, allOffers, hasOffers, ...getFlags(destination),
     };
   }
 

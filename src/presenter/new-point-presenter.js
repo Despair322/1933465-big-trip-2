@@ -1,7 +1,6 @@
 import EventFormView from '../view/event-form-view/event-form-view.js';
 import { remove, render, RenderPosition } from '../framework/render.js';
 import { UserAction, UpdateType, BLANK_POINT, BLANK_DESTINATION } from '../utils/constants.js';
-import { nanoid } from 'nanoid';
 
 export default class NewPointPresenter {
 
@@ -70,12 +69,16 @@ export default class NewPointPresenter {
     }
   };
 
-  #handleFormSubmit = (update) => {
-    this.#handleDataChange(
-      UserAction.ADD_POINT,
-      UpdateType.MINOR,
-      { ...update, id: nanoid() });
-    this.destroy();
+  #handleFormSubmit = async (update) => {
+    try {
+      await this.#handleDataChange(
+        UserAction.ADD_POINT,
+        UpdateType.MINOR,
+        { ...update });
+      this.destroy();
+    } catch (err) {
+      throw new Error('Can\'t add point');
+    }
   };
 
   #handleDeleteClick = () => {
@@ -90,4 +93,21 @@ export default class NewPointPresenter {
 
   #handleDestinationChange = (destination) => this.#destinationsModel.getDestinationByTitle(destination);
 
+  setSaving() {
+    this.#addFormComponent.updateElement({
+      isSaving: true,
+      isDisabled: true
+    });
+  }
+
+  setAborting() {
+    const resetFormState = () => {
+      this.#addFormComponent.updateElement({
+        isSaving: false,
+        isDisabled: false,
+        isDeleting: false
+      });
+    };
+    this.#addFormComponent.shake(resetFormState);
+  }
 }
