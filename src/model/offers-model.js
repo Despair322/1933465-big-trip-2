@@ -1,10 +1,22 @@
-import { getOffers } from '../mock/offers';
+import Observable from '../framework/observable.js';
+import { UpdateType } from '../utils/constants';
 
-export default class OffersModel {
+export default class OffersModel extends Observable {
   #offers = [];
+  #offersApiService = null;
 
-  init() {
-    this.#offers = getOffers();
+  constructor({ offersApiService }) {
+    super();
+    this.#offersApiService = offersApiService;
+  }
+
+  async init() {
+    try {
+      this.#offers = await this.#offersApiService.offers;
+    } catch (err) {
+      this.#offers = [];
+    }
+    this._notify(UpdateType.INIT);
   }
 
   getOffersByType(type) {

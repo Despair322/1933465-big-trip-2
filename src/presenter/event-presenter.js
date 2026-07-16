@@ -147,7 +147,7 @@ export default class EventPresenter {
       UserAction.UPDATE_POINT,
       updateType,
       update);
-    this.#closeForm();
+    // this.#closeForm();
   };
 
   #handleDeleteClick = (point) => {

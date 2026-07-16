@@ -17,7 +17,6 @@ export default class HeaderPresenter {
     this.#pointsModel = pointsModel;
     this.#filterModel = filterModel;
     this.#formModel = formModel;
-
     this.#addObservers();
   }
 
@@ -32,6 +31,7 @@ export default class HeaderPresenter {
       onClick: this.#handleNewPointButtonClick
     });
     render(this.#newPointButtonComponent, this.#headerContainer);
+
   }
 
   #handleNewPointButtonClick = () => {

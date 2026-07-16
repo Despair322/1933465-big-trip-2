@@ -14,12 +14,15 @@ export default class AppPresenter {
   #boardContainer = null;
   #headerContainer = null;
 
-  constructor({pointsModel, offersModel, destinationsModel, filterModel, formModel}) {
+  #allInits = null;
+
+  constructor({pointsModel, offersModel, destinationsModel, filterModel, formModel, allInits}) {
     this.#pointsModel = pointsModel;
     this.#offersModel = offersModel;
     this.#destinationsModel = destinationsModel;
     this.#filterModel = filterModel;
     this.#formModel = formModel;
+    this.#allInits = allInits;
     this.#findContainers();
   }
 
@@ -42,10 +45,11 @@ export default class AppPresenter {
       headerContainer: this.#headerContainer,
       pointsModel: this.#pointsModel,
       filterModel: this.#filterModel,
-      formModel: this.#formModel
+      formModel: this.#formModel,
     });
+    this.#allInits.finally(() => this.#headerPresenter.init());
     this.#boardPresenter.init();
-    this.#headerPresenter.init();
+
   }
 
 }

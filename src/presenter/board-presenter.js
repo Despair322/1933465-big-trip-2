@@ -7,10 +7,12 @@ import { Sorts } from '../utils/sort.js';
 import { Filters } from '../utils/filter.js';
 import EventsPresenter from './events-presenter.js';
 import { generateSort } from '../utils/utils.js';
+import LoadingView from '../view/loading-view/loading-veiw.js';
 
 export default class BoardPresenter {
   #boardContainer = null;
   #boardComponent = new TripEventsListView();
+  #loadingComponent = new LoadingView();
   #sortComponent = null;
   #noEventsComponent = null;
   #pointsModel = null;
@@ -25,6 +27,8 @@ export default class BoardPresenter {
   #newPointPresenter = null;
   #eventsPresenter = null;
   #sort = null;
+  #readyModelsCount = 0;
+  #isLoading = true;
 
   constructor({ boardContainer, pointsModel, offersModel, filterModel, destinationsModel, formModel, onNewPointDestroy }) {
     this.#boardContainer = boardContainer;
@@ -39,6 +43,8 @@ export default class BoardPresenter {
 
   #addObservers() {
     this.#pointsModel.addObserver(this.#handleModelEvent);
+    this.#offersModel.addObserver(this.#handleModelEvent);
+    this.#destinationsModel.addObserver(this.#handleModelEvent);
     this.#filterModel.addObserver(this.#handleModelEvent);
     this.#formModel.addObserver(this.#handleModelEvent);
   }
@@ -88,7 +94,7 @@ export default class BoardPresenter {
   #handleModelEvent = (updateType, data) => {
     switch (updateType) {
       case UpdateType.PATCH:
-        this.#eventsPresenter.events.get(data.id).init({point: data});
+        this.#eventsPresenter.events.get(data.id).init({ point: data });
         break;
       case UpdateType.MINOR:
         this.#resetList();
@@ -106,8 +112,20 @@ export default class BoardPresenter {
           this.#resetList();
         }
         break;
+      case UpdateType.INIT:
+        this.#readyModelsCount++;
+        if (this.#readyModelsCount === 3) {
+          remove(this.#loadingComponent);
+          this.#isLoading = false;
+          this.#render();
+        }
+        break;
     }
   };
+
+  #renderLoading() {
+    render(this.#loadingComponent, this.#boardContainer);
+  }
 
   #handleSortChange = (sortType) => {
     if (this.#currentSortType === sortType) {
@@ -124,8 +142,13 @@ export default class BoardPresenter {
   }
 
   #render() {
-    this.#renderSort({ currentSortType: this.#currentSortType });
     render(this.#boardComponent, this.#boardContainer);
+    if (this.#isLoading) {
+      this.#renderLoading();
+      return;
+    }
+    this.#renderSort({ currentSortType: this.#currentSortType });
+
     this.#renderList();
   }
 
@@ -136,6 +159,7 @@ export default class BoardPresenter {
 
   #renderNoEvents() {
     this.#noEventsComponent = new NoEventsView(Messages[this.#filterModel.filter]);
+    remove(this.#loadingComponent);
     render(this.#noEventsComponent, this.#boardContainer);
   }
 
