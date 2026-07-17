@@ -39,7 +39,8 @@ const Messages = {
   [FilterType.EVERYTHING]: 'Click New Event to create your first point',
   [FilterType.PAST]: 'There are no past events now',
   [FilterType.PRESENT]: 'There are no present events now',
-  [FilterType.FUTURE]: 'There are no future events now'
+  [FilterType.FUTURE]: 'There are no future events now',
+  LOADING_ERROR: 'Error loading data',
 };
 
 const SortType = {
@@ -73,4 +74,7 @@ const UpdateType = {
   INIT: 'INIT'
 };
 
-export { BLANK_DESTINATION, BLANK_POINT, TYPES, Messages, FilterType, SortType, FormType, UserAction, UpdateType };
+const AUTHORIZATION = 'Basic hS2sfS44wcl1sa3j';
+const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';
+
+export { BLANK_DESTINATION, BLANK_POINT, TYPES, Messages, FilterType, SortType, FormType, UserAction, UpdateType, AUTHORIZATION, END_POINT };

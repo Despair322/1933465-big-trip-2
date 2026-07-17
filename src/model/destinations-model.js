@@ -1,6 +1,5 @@
 // import { getDestinations } from '../mock/destinations';
 import Observable from '../framework/observable.js';
-import { UpdateType } from '../utils/constants.js';
 export default class DestinationsModel extends Observable {
   #destinations = [];
   #destinationsApiService = null;
@@ -15,8 +14,8 @@ export default class DestinationsModel extends Observable {
       this.#destinations = await this.#destinationsApiService.destinations;
     } catch (err) {
       this.#destinations = [];
+      throw new Error('Can\'t load destinations');
     }
-    this._notify(UpdateType.INIT);
   }
 
   get destinations() {

@@ -1,5 +1,4 @@
 import Observable from '../framework/observable.js';
-import { UpdateType } from '../utils/constants.js';
 
 export default class PointsModel extends Observable {
   #points = [];
@@ -12,13 +11,17 @@ export default class PointsModel extends Observable {
   }
 
   async init() {
+    await this.initPoints();
+  }
+
+  async initPoints(){
     try {
       const points = await this.#pointsApiService.points;
       this.#points = points.map(this.#adaptToClient);
     } catch (err) {
       this.#points = [];
+      throw new Error('Can\'t load points');
     }
-    this._notify(UpdateType.INIT);
   }
 
   get points() {

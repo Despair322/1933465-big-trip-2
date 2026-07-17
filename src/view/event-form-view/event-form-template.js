@@ -46,6 +46,13 @@ function createAddButtonText(isSaving, isAddForm) {
   }
 }
 
+function createResetButtonText(isDeleting, isAddForm) {
+  if (isAddForm) {
+    return 'Cancel';
+  } else {
+    return isDeleting ? 'Deleting...' : 'Delete';
+  }
+}
 
 function createRollup(isAddForm) {
   return isAddForm ? '' : `<button class="event__rollup-btn" type="button">
@@ -112,7 +119,7 @@ export function createEventFormTemplate(state, destinations, isAddForm) {
       <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>
         ${createAddButtonText(isSaving, isAddForm)}
       </button >
-      <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>${isDeleting ? 'Deleting...' : 'Delete'}</button>
+      <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>${createResetButtonText(isDeleting, isAddForm)}</button>
       ${createRollup(isAddForm)}
     </header >
     <section class="event__details">

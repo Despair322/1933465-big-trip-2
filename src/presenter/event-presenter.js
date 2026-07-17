@@ -3,7 +3,7 @@ import EventFormView from '../view/event-form-view/event-form-view.js';
 import { remove, render, replace } from '../framework/render.js';
 import { UserAction, UpdateType, SortType } from '../utils/constants.js';
 import dayjs from 'dayjs';
-import { getDuration } from '../utils/utils.js';
+import { getDuration, isPointNotChanged } from '../utils/utils.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -128,6 +128,10 @@ export default class EventPresenter {
   };
 
   #handleFormSubmit = (update) => {
+    if(isPointNotChanged(update, this.#point)){
+      this.#editFormComponent.shake();
+      return;
+    }
     let updateType = UpdateType.PATCH;
     switch (this.#currentSortType) {
       case SortType.DAY:

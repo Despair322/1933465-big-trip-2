@@ -1,5 +1,6 @@
 import UiBlocker from '../framework/ui-blocker/ui-blocker';
 import { UserAction } from '../utils/constants';
+// import { pointNotChanged } from '../utils/utils';
 import EventPresenter from './event-presenter';
 import NewPointPresenter from './new-point-presenter';
 
@@ -11,7 +12,6 @@ const TimeLimit = {
 export default class EventsPresenter {
   #eventPresenters = new Map();
   #newPointPresenter = null;
-  #formModel = null;
   #pointsModel = null;
   #offersModel = null;
   #destinationsModel = null;
@@ -26,8 +26,7 @@ export default class EventsPresenter {
   #handleNewPointDestroy = null;
   #isAddFormOpen = false;
 
-  constructor({ pointsModel, formModel, offersModel, destinationsModel, onNewPointDestroy }) {
-    this.#formModel = formModel;
+  constructor({ pointsModel, offersModel, destinationsModel, onNewPointDestroy }) {
     this.#offersModel = offersModel;
     this.#destinationsModel = destinationsModel;
     this.#pointsModel = pointsModel;
@@ -108,6 +107,11 @@ export default class EventsPresenter {
     this.#uiBLocker.block();
     switch (actionType) {
       case UserAction.UPDATE_POINT:
+        // console.log
+        // if(pointNotChanged(update, this.#eventPresenters.get(update.id).point)) {
+        //   this.#eventPresenters.get(update.id).setAborting();
+        //   break;
+        // }
         this.#eventPresenters.get(update.id).setSaving();
         try {
           await this.#pointsModel.updatePoint(updateType, update);

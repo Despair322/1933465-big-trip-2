@@ -1,13 +1,13 @@
 import TripEventsListView from '../view/trip-events-list-view/trip-events-list-view.js';
 import SortView from '../view/sort-view/sort-view.js';
 import { remove, render, RenderPosition } from '../framework/render.js';
-import NoEventsView from '../view/no-events-view/no-events-view.js';
-import { Messages, SortType, UpdateType, FilterType, FormType } from '../utils/constants.js';
+import { Messages, SortType, UpdateType, FilterType } from '../utils/constants.js';
 import { Sorts } from '../utils/sort.js';
 import { Filters } from '../utils/filter.js';
 import EventsPresenter from './events-presenter.js';
 import { generateSort } from '../utils/utils.js';
 import LoadingView from '../view/loading-view/loading-veiw.js';
+import ErrorView from '../view/error-view/error-view.js';
 
 
 export default class BoardPresenter {
@@ -20,7 +20,6 @@ export default class BoardPresenter {
   #offersModel = null;
   #destinationsModel = null;
   #filterModel = null;
-  #formModel = null;
   #handleNewPointDestroy = null;
 
   #destinations = [];
@@ -29,14 +28,16 @@ export default class BoardPresenter {
   #sort = null;
   #readyModelsCount = 0;
   #isLoading = true;
+  #allInits = null;
 
-  constructor({ boardContainer, pointsModel, offersModel, filterModel, destinationsModel, onNewPointDestroy }) {
+  constructor({ boardContainer, pointsModel, offersModel, filterModel, destinationsModel, onNewPointDestroy, allInits }) {
     this.#boardContainer = boardContainer;
     this.#pointsModel = pointsModel;
     this.#offersModel = offersModel;
     this.#destinationsModel = destinationsModel;
     this.#filterModel = filterModel;
     this.#handleNewPointDestroy = onNewPointDestroy;
+    this.#allInits = allInits;
     this.#addObservers();
   }
 
@@ -56,7 +57,15 @@ export default class BoardPresenter {
       onNewPointDestroy: this.#handleNewPointDestroy,
     });
     this.#sort = generateSort();
-    this.#render();
+    this.#allInits.then((results) => {
+      if (results.every((result) => result.status === 'fulfilled')) {
+        remove(this.#loadingComponent);
+        this.#isLoading = false;
+        this.#render();
+      } else {
+        render(new ErrorView(Messages.LOADING_ERROR), this.#boardContainer, RenderPosition.AFTERBEGIN);
+      }
+    });
   }
 
   get points() {
@@ -77,14 +86,6 @@ export default class BoardPresenter {
       case UpdateType.MAJOR:
         this.#clearBoard({ resetSortType: true });
         this.#render();
-        break;
-      case UpdateType.INIT:
-        this.#readyModelsCount++;
-        if (this.#readyModelsCount === 3) {
-          remove(this.#loadingComponent);
-          this.#isLoading = false;
-          this.#render();
-        }
         break;
     }
   };
@@ -115,7 +116,7 @@ export default class BoardPresenter {
     }
     this.#renderSort({ currentSortType: this.#currentSortType });
 
-    this.#renderList();
+    this.#renderContent();
   }
 
   #renderSort() {
@@ -124,13 +125,13 @@ export default class BoardPresenter {
   }
 
   #renderNoEvents() {
-    this.#noEventsComponent = new NoEventsView(Messages[this.#filterModel.filter]);
+    this.#noEventsComponent = new ErrorView(Messages[this.#filterModel.filter]);
     remove(this.#loadingComponent);
     render(this.#noEventsComponent, this.#boardContainer);
   }
 
-  #renderList() {
-    if (this.points.length === 0 && this.#formModel.form !== FormType.ADD) {
+  #renderContent() {
+    if (this.points.length === 0) {
       this.#renderNoEvents();
       return;
     }
@@ -139,7 +140,7 @@ export default class BoardPresenter {
 
   #resetList() {
     this.#eventsPresenter.reset();
-    this.#renderList();
+    this.#renderContent();
   }
 
   #clearBoard({ resetSortType = false } = {}) {
@@ -152,11 +153,11 @@ export default class BoardPresenter {
     }
   }
 
-  #newPointDestroyHandler(){
+  #newPointDestroyHandler() {
     this.#handleNewPointDestroy();
   }
 
-  openAddForm(){
+  openAddForm() {
     this.#eventsPresenter.init({ isAddFormOpen: true });
   }
 }

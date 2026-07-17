@@ -9,24 +9,22 @@ export default class AppPresenter {
   #offersModel = null;
   #destinationsModel = null;
   #filterModel = null;
-  #formModel = null;
 
   #boardContainer = null;
   #headerContainer = null;
 
   #allInits = null;
 
-  constructor({pointsModel, offersModel, destinationsModel, filterModel, formModel, allInits}) {
+  constructor({ pointsModel, offersModel, destinationsModel, filterModel, allInits }) {
     this.#pointsModel = pointsModel;
     this.#offersModel = offersModel;
     this.#destinationsModel = destinationsModel;
     this.#filterModel = filterModel;
-    this.#formModel = formModel;
     this.#allInits = allInits;
     this.#findContainers();
   }
 
-  #findContainers(){
+  #findContainers() {
     this.#boardContainer = document.querySelector('.trip-events');
     this.#headerContainer = document.querySelector('.trip-main');
   }
@@ -35,29 +33,31 @@ export default class AppPresenter {
     this.#boardPresenter.openAddForm();
   };
 
-  #newPointFormCloseHandler = () =>{
+  #newPointFormCloseHandler = () => {
     this.#headerPresenter.unblockButton();
   };
 
-
-  init(){
+  init() {
     this.#boardPresenter = new BoardPresenter({
       boardContainer: this.#boardContainer,
       pointsModel: this.#pointsModel,
       offersModel: this.#offersModel,
       destinationsModel: this.#destinationsModel,
       filterModel: this.#filterModel,
-      formModel: this.#formModel,
+      allInits: this.#allInits,
       onNewPointDestroy: this.#newPointFormCloseHandler
     });
     this.#headerPresenter = new HeaderPresenter({
       headerContainer: this.#headerContainer,
       pointsModel: this.#pointsModel,
       filterModel: this.#filterModel,
-      formModel: this.#formModel,
       onClick: this.#newPointButtonClickHandler
     });
-    this.#allInits.finally(() => this.#headerPresenter.init());
+    this.#allInits.then((results) => {
+      if (results.every((result) => result.status === 'fulfilled')) {
+        this.#headerPresenter.init();
+      }
+    });
     this.#boardPresenter.init();
   }
 }

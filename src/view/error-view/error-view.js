@@ -1,7 +1,7 @@
-import { createNoEventsTemplate } from './no-events-template.js';
+import { createErrorTemplate } from './error-template.js';
 import AbstractView from '../../framework/view/abstract-view.js';
 
-export default class NoEventsView extends AbstractView {
+export default class ErrorView extends AbstractView {
   #message = null;
 
   constructor(message) {
@@ -10,6 +10,6 @@ export default class NoEventsView extends AbstractView {
   }
 
   get template() {
-    return createNoEventsTemplate(this.#message);
+    return createErrorTemplate(this.#message);
   }
 }

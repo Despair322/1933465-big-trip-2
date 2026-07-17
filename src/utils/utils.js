@@ -42,4 +42,14 @@ function generateSort() {
   );
 }
 
-export { humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration, generateSort };
+function isPointNotChanged(point, newPoint) {
+  return point.dateFrom.getTime() === new Date(newPoint.dateFrom).getTime()
+    && point.dateTo.getTime() === new Date(newPoint.dateTo).getTime()
+    && point.basePrice === newPoint.basePrice
+    && point.isFavorite === newPoint.isFavorite
+    && point.offers.length === newPoint.offers.length
+    && point.destination.id === newPoint.destination.id
+    && point.type === newPoint.type;
+}
+
+export { humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration, generateSort, isPointNotChanged };

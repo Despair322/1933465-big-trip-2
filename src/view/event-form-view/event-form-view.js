@@ -16,6 +16,7 @@ export default class EventFormView extends AbstractStatefulView {
   #datepickerEnd = null;
   #isAddForm = false;
   #submitButton = null;
+  #initialState = null;
   constructor({ point, destination, offers, allOffers, destinations, onFormSubmit, onRollupClick, onDeleteClick, onTypeChange, onDestinationChange, isAddForm = false }) {
     super();
     this.#destinations = destinations;
@@ -26,6 +27,7 @@ export default class EventFormView extends AbstractStatefulView {
     this.#handleTypeChange = onTypeChange;
     this.#isAddForm = isAddForm;
     this._setState(EventFormView.parseEventToState({ point, destination, offers, allOffers }));
+    this.#initialState = structuredClone(this._state);
     this._restoreHandlers();
     this.#submitButton = this.element.querySelector('.event__save-btn');
     if (this.#isAddForm) {
