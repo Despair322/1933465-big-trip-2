@@ -83,7 +83,6 @@ export default class EventPresenter {
     if (this.#mode === Mode.EDITING) {
       replace(this.#eventComponent, prevEditFormComponent);
       this.#mode = Mode.DEFAULT;
-      // replace(this.#editFormComponent, prevEditFormComponent);
 
     }
     remove(prevEventComponent);
@@ -102,11 +101,13 @@ export default class EventPresenter {
   }
 
   #closeForm = () => {
+    if (this.#mode === Mode.DEFAULT) {
+      return;
+    }
     this.#editFormComponent.reset({ point: this.#point, destination: this.#destination, offers: this.#offers, allOffers: this.#allOffers });
     replace(this.#eventComponent, this.#editFormComponent);
     window.removeEventListener('keydown', this.#escapeKeydownHandler);
     this.#mode = Mode.DEFAULT;
-    this.#handleDataChange(UserAction.CLOSE_EDIT_POINT_FORM, UpdateType.FORM);
   };
 
   #openForm() {
@@ -114,7 +115,6 @@ export default class EventPresenter {
     replace(this.#editFormComponent, this.#eventComponent);
     window.addEventListener('keydown', this.#escapeKeydownHandler);
     this.#mode = Mode.EDITING;
-    this.#handleDataChange(UserAction.OPEN_EDIT_POINT_FORM, UpdateType.FORM);
   }
 
   #handleRollupClick = () => {
@@ -150,7 +150,7 @@ export default class EventPresenter {
       UserAction.UPDATE_POINT,
       updateType,
       update);
-    // this.#closeForm();
+
   };
 
   #handleDeleteClick = (point) => {
@@ -165,6 +165,7 @@ export default class EventPresenter {
       UserAction.UPDATE_POINT,
       UpdateType.PATCH,
       { ...this.#point, isFavorite: !this.#point.isFavorite });
+
   };
 
   #handleTypeChange = (type) => this.#offersModel.getOffersByType(type);
@@ -202,6 +203,10 @@ export default class EventPresenter {
   }
 
   setAborting() {
+    if (this.#mode === Mode.DEFAULT) {
+      this.#eventComponent.shake();
+      return;
+    }
     const resetFormState = () => {
       this.#editFormComponent.updateElement({
         isSaving: false,
@@ -210,5 +215,9 @@ export default class EventPresenter {
       });
     };
     this.#editFormComponent.shake(resetFormState);
+  }
+
+  get mode() {
+    return this.#mode;
   }
 }

@@ -55,7 +55,6 @@ export default class NewPointPresenter {
     remove(this.#addFormComponent);
     this.#addFormComponent = null;
     window.removeEventListener('keydown', this.#escapeKeydownHandler);
-    this.#handleDataChange(UserAction.CLOSE_NEW_POINT_FORM, UpdateType.FORM);
   }
 
   #render() {
@@ -69,23 +68,15 @@ export default class NewPointPresenter {
     }
   };
 
-  #handleFormSubmit = async (update) => {
-    try {
-      await this.#handleDataChange(
-        UserAction.ADD_POINT,
-        UpdateType.MINOR,
-        { ...update });
-      this.destroy();
-    } catch (err) {
-      throw new Error('Can\'t add point');
-    }
+  #handleFormSubmit = (update) => {
+    this.#handleDataChange(
+      UserAction.ADD_POINT,
+      UpdateType.MINOR,
+      { ...update });
   };
 
   #handleDeleteClick = () => {
-    this.#handleDataChange(
-      UserAction.CLOSE_NEW_POINT_FORM,
-      UpdateType.FORM
-    );
+    this.#handleCloseClick();
     this.destroy();
   };
 

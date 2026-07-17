@@ -1,5 +1,5 @@
 import { render } from '../framework/render';
-import { FormType, UpdateType } from '../utils/constants';
+// import { FormType, UpdateType } from '../utils/constants';
 import NewPointButtonView from '../view/new-point-button-view/new-point-button-view';
 import FilterPresenter from './filter-presenter';
 
@@ -7,17 +7,16 @@ export default class HeaderPresenter {
   #headerContainer = null;
   #pointsModel = null;
   #filterModel = null;
-  #formModel = null;
+  #handleNewPointButtonClick = null;
 
   #filterPresenter = null;
   #newPointButtonComponent = null;
 
-  constructor({ headerContainer, pointsModel, filterModel, formModel }) {
+  constructor({ headerContainer, pointsModel, filterModel, onClick }) {
     this.#headerContainer = headerContainer;
     this.#pointsModel = pointsModel;
     this.#filterModel = filterModel;
-    this.#formModel = formModel;
-    this.#addObservers();
+    this.#handleNewPointButtonClick = onClick;
   }
 
   init() {
@@ -28,30 +27,18 @@ export default class HeaderPresenter {
     });
     this.#filterPresenter.init();
     this.#newPointButtonComponent = new NewPointButtonView({
-      onClick: this.#handleNewPointButtonClick
+      onClick: this.#newPointButtonClickHandler
     });
     render(this.#newPointButtonComponent, this.#headerContainer);
 
   }
 
-  #handleNewPointButtonClick = () => {
-    this.#formModel.openForm(UpdateType.FORM, FormType.ADD);
+  #newPointButtonClickHandler = () => {
+    this.#handleNewPointButtonClick();
+    this.#newPointButtonComponent.element.disabled = true;
   };
 
-  #addObservers() {
-    this.#formModel.addObserver(this.#handleModelEvent);
+  unblockButton() {
+    this.#newPointButtonComponent.element.disabled = false;
   }
-
-  #handleModelEvent = (updateType) => {
-    if (updateType === UpdateType.FORM) {
-      switch (this.#formModel.form) {
-        case FormType.ADD:
-          this.#newPointButtonComponent.element.disabled = true;
-          break;
-        default:
-          this.#newPointButtonComponent.element.disabled = false;
-          break;
-      }
-    }
-  };
 }

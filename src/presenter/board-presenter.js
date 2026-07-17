@@ -1,19 +1,14 @@
 import TripEventsListView from '../view/trip-events-list-view/trip-events-list-view.js';
 import SortView from '../view/sort-view/sort-view.js';
 import { remove, render, RenderPosition } from '../framework/render.js';
-import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 import NoEventsView from '../view/no-events-view/no-events-view.js';
-import { Messages, SortType, UpdateType, UserAction, FilterType, FormType } from '../utils/constants.js';
+import { Messages, SortType, UpdateType, FilterType, FormType } from '../utils/constants.js';
 import { Sorts } from '../utils/sort.js';
 import { Filters } from '../utils/filter.js';
 import EventsPresenter from './events-presenter.js';
 import { generateSort } from '../utils/utils.js';
 import LoadingView from '../view/loading-view/loading-veiw.js';
 
-const TimeLimit = {
-  LOWER_LIMIT: 350,
-  UPPER_LIMIT: 1000,
-};
 
 export default class BoardPresenter {
   #boardContainer = null;
@@ -34,18 +29,13 @@ export default class BoardPresenter {
   #sort = null;
   #readyModelsCount = 0;
   #isLoading = true;
-  #uiBLocker = new UiBlocker({
-    lowerLimit: TimeLimit.LOWER_LIMIT,
-    upperLimit: TimeLimit.UPPER_LIMIT
-  });
 
-  constructor({ boardContainer, pointsModel, offersModel, filterModel, destinationsModel, formModel, onNewPointDestroy }) {
+  constructor({ boardContainer, pointsModel, offersModel, filterModel, destinationsModel, onNewPointDestroy }) {
     this.#boardContainer = boardContainer;
     this.#pointsModel = pointsModel;
     this.#offersModel = offersModel;
     this.#destinationsModel = destinationsModel;
     this.#filterModel = filterModel;
-    this.#formModel = formModel;
     this.#handleNewPointDestroy = onNewPointDestroy;
     this.#addObservers();
   }
@@ -55,17 +45,15 @@ export default class BoardPresenter {
     this.#offersModel.addObserver(this.#handleModelEvent);
     this.#destinationsModel.addObserver(this.#handleModelEvent);
     this.#filterModel.addObserver(this.#handleModelEvent);
-    this.#formModel.addObserver(this.#handleModelEvent);
   }
 
   init() {
     this.#destinations = this.#destinationsModel.destinations;
     this.#eventsPresenter = new EventsPresenter({
       pointsModel: this.#pointsModel,
-      formModel: this.#formModel,
       offersModel: this.#offersModel,
       destinationsModel: this.#destinationsModel,
-      onDataChange: this.#handleViewAction
+      onNewPointDestroy: this.#handleNewPointDestroy,
     });
     this.#sort = generateSort();
     this.#render();
@@ -78,49 +66,10 @@ export default class BoardPresenter {
     return Sorts[this.#currentSortType](filteredPoints);
   }
 
-  #handleViewAction = async (actionType, updateType, update) => {
-    this.#uiBLocker.block();
-    switch (actionType) {
-      case UserAction.UPDATE_POINT:
-        this.#eventsPresenter.events.get(update.id).setSaving();
-        try {
-          await this.#pointsModel.updatePoint(updateType, update);
-        } catch (err) {
-          this.#eventsPresenter.events.get(update.id).setAborting();
-        }
-        break;
-      case UserAction.ADD_POINT:
-        this.#eventsPresenter.newPointPresenter.setSaving();
-        try {
-          await this.#pointsModel.addPoint(updateType, update);
-          this.#formModel.closeForm(UpdateType.FORM);
-        } catch (err) {
-          this.#eventsPresenter.newPointPresenter.setAborting();
-        }
-        break;
-      case UserAction.DELETE_POINT:
-        this.#eventsPresenter.events.get(update.id).setDeleting();
-        try {
-          await this.#pointsModel.deletePoint(updateType, update);
-        } catch (err) {
-          this.#eventsPresenter.events.get(update.id).setAborting();
-        }
-        break;
-      case UserAction.CLOSE_NEW_POINT_FORM:
-      case UserAction.CLOSE_EDIT_POINT_FORM:
-        this.#formModel.closeForm(UpdateType.FORM);
-        break;
-      case UserAction.OPEN_EDIT_POINT_FORM:
-        this.#formModel.openForm(UpdateType.FORM, FormType.EDIT);
-        break;
-    }
-    this.#uiBLocker.unblock();
-  };
-
   #handleModelEvent = (updateType, data) => {
     switch (updateType) {
       case UpdateType.PATCH:
-        this.#eventsPresenter.events.get(data.id).init({ point: data });
+        this.#eventsPresenter.updatePoint(data);
         break;
       case UpdateType.MINOR:
         this.#resetList();
@@ -128,15 +77,6 @@ export default class BoardPresenter {
       case UpdateType.MAJOR:
         this.#clearBoard({ resetSortType: true });
         this.#render();
-        break;
-      case UpdateType.FORM:
-        if (data === FormType.ADD) {
-          this.#reset();
-          break;
-        }
-        if (this.#pointsModel.points.length === 0) {
-          this.#resetList();
-        }
         break;
       case UpdateType.INIT:
         this.#readyModelsCount++;
@@ -210,5 +150,13 @@ export default class BoardPresenter {
     if (resetSortType) {
       this.#currentSortType = SortType.DAY;
     }
+  }
+
+  #newPointDestroyHandler(){
+    this.#handleNewPointDestroy();
+  }
+
+  openAddForm(){
+    this.#eventsPresenter.init({ isAddFormOpen: true });
   }
 }

@@ -3,6 +3,7 @@ import Observable from '../framework/observable.js';
 export default class FormModel extends Observable {
   #form = null;
 
+
   get form() {
     return this.#form;
   }
@@ -13,7 +14,7 @@ export default class FormModel extends Observable {
   }
 
   closeForm(updateType) {
-    this._notify(updateType);
+    this._notify(updateType, this.#form);
     this.#form = null;
   }
 }

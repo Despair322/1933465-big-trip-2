@@ -31,6 +31,14 @@ export default class AppPresenter {
     this.#headerContainer = document.querySelector('.trip-main');
   }
 
+  #newPointButtonClickHandler = () => {
+    this.#boardPresenter.openAddForm();
+  };
+
+  #newPointFormCloseHandler = () =>{
+    this.#headerPresenter.unblockButton();
+  };
+
 
   init(){
     this.#boardPresenter = new BoardPresenter({
@@ -40,16 +48,16 @@ export default class AppPresenter {
       destinationsModel: this.#destinationsModel,
       filterModel: this.#filterModel,
       formModel: this.#formModel,
+      onNewPointDestroy: this.#newPointFormCloseHandler
     });
     this.#headerPresenter = new HeaderPresenter({
       headerContainer: this.#headerContainer,
       pointsModel: this.#pointsModel,
       filterModel: this.#filterModel,
       formModel: this.#formModel,
+      onClick: this.#newPointButtonClickHandler
     });
     this.#allInits.finally(() => this.#headerPresenter.init());
     this.#boardPresenter.init();
-
   }
-
 }

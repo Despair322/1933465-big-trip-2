@@ -1,7 +1,5 @@
 import Observable from '../framework/observable.js';
-// import { getRandomPoints } from '../mock/points.js';
 import { UpdateType } from '../utils/constants.js';
-// const POINTS_COUNT = 1;
 
 export default class PointsModel extends Observable {
   #points = [];
