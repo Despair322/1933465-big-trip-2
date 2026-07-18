@@ -51,30 +51,19 @@ const SortType = {
   OFFER: 'offer'
 };
 
-const FormType = {
-  ADD: 'ADD',
-  EDIT: 'EDIT'
-};
-
 const UserAction = {
   UPDATE_POINT: 'UPDATE_POINT',
   ADD_POINT: 'ADD_POINT',
   DELETE_POINT: 'DELETE_POINT',
-  OPEN_NEW_POINT_FORM: 'OPEN_NEW_POINT_FORM',
-  CLOSE_NEW_POINT_FORM: 'CLOSE_NEW_POINT_FORM',
-  OPEN_EDIT_POINT_FORM: 'OPEN_EDIT_POINT_FORM',
-  CLOSE_EDIT_POINT_FORM: 'CLOSE_EDIT_POINT_FORM'
 };
 
 const UpdateType = {
   PATCH: 'PATCH',
   MINOR: 'MINOR',
   MAJOR: 'MAJOR',
-  FORM: 'FORM',
-  INIT: 'INIT'
 };
 
-const AUTHORIZATION = 'Basic hS2sfS44wcl1sa3j';
+const AUTHORIZATION = 'Basic hS2sfS44wcl1sa3';
 const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';
 
-export { BLANK_DESTINATION, BLANK_POINT, TYPES, Messages, FilterType, SortType, FormType, UserAction, UpdateType, AUTHORIZATION, END_POINT };
+export { BLANK_DESTINATION, BLANK_POINT, TYPES, Messages, FilterType, SortType, UserAction, UpdateType, AUTHORIZATION, END_POINT };

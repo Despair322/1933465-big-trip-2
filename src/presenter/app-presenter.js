@@ -51,6 +51,8 @@ export default class AppPresenter {
       headerContainer: this.#headerContainer,
       pointsModel: this.#pointsModel,
       filterModel: this.#filterModel,
+      offersModel: this.#offersModel,
+      destinationsModel: this.#destinationsModel,
       onClick: this.#newPointButtonClickHandler
     });
     this.#allInits.then((results) => {

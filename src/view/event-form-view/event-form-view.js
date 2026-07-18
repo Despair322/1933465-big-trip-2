@@ -39,6 +39,7 @@ export default class EventFormView extends AbstractStatefulView {
     return createEventFormTemplate(this._state, this.#destinations, this.#isAddForm);
   }
 
+
   _restoreHandlers() {
     this.element.addEventListener('submit', this.#formSubmitHandler);
     this.element.querySelector('.event__rollup-btn')?.addEventListener('click', this.#rollupClickHandler);
@@ -210,7 +211,7 @@ export default class EventFormView extends AbstractStatefulView {
   }
 
   static parseEventToState({ point, destination, offers, allOffers }) {
-    const hasOffers = offers.length > 0;
+    const hasOffers = allOffers.length > 0;
     const dateFrom = point.dateFrom ? dayjs(point.dateFrom).$d : undefined;
     const dateTo = point.dateTo ? dayjs(point.dateTo).$d : undefined;
     return {
