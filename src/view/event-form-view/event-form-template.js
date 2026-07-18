@@ -4,13 +4,13 @@ import { humanizeDateAndTime } from '../../utils/utils.js';
 function createOfferTemplate(offer, pointId, isChecked = false) {
   const { title, price, id } = offer;
   return `<div class="event__offer-selector">
-                        <input class="event__offer-checkbox  visually-hidden" id="event-offer-${id}-${pointId}" type="checkbox" name="event-offer-${id}" ${isChecked ? 'checked' : ''} data-offer-id="${id}">
-                        <label class="event__offer-label" for="event-offer-${id}-${pointId}">
-                          <span class="event__offer-title">${title}</span>
-                          &plus;&euro;&nbsp;
-                          <span class="event__offer-price">${price}</span>
-                        </label>
-                      </div>`;
+            <input class="event__offer-checkbox  visually-hidden" id="event-offer-${id}-${pointId}" type="checkbox" name="event-offer-${id}" ${isChecked ? 'checked' : ''} data-offer-id="${id}">
+            <label class="event__offer-label" for="event-offer-${id}-${pointId}">
+              <span class="event__offer-title">${title}</span>
+              &plus;&euro;&nbsp;
+              <span class="event__offer-price">${price}</span>
+            </label>
+          </div>`;
 }
 
 function createPhotosTemplate(photos) {
@@ -33,9 +33,9 @@ function createOffersTemplate(offers, allOffers, id) {
 
 function createPointTypeTemplate(type, id) {
   return `<div class="event__type-item">
-                          <input id="event-type-${type}-${id}" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type}">
-                          <label class="event__type-label  event__type-label--${type}" for="event-type-${type}-${id}">${type[0].toUpperCase() + type.slice(1)}</label>
-                        </div>`;
+            <input id="event-type-${type}-${id}" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${type}">
+            <label class="event__type-label  event__type-label--${type}" for="event-type-${type}-${id}">${type[0].toUpperCase() + type.slice(1)}</label>
+          </div>`;
 }
 
 function createAddButtonText(isSaving, isAddForm) {
@@ -59,7 +59,6 @@ function createRollup(isAddForm) {
                     <span class="visually-hidden">Open event</span>
                   </button>`;
 }
-
 
 export function createEventFormTemplate(state, destinations, isAddForm) {
   const { type, basePrice, id, dateTo, dateFrom, offers, allOffers,

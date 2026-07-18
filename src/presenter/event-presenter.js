@@ -128,7 +128,7 @@ export default class EventPresenter {
   };
 
   #handleFormSubmit = (update) => {
-    if(isPointNotChanged(update, this.#point)){
+    if (isPointNotChanged(update, this.#point)) {
       this.#editFormComponent.shake();
       return;
     }
@@ -154,7 +154,6 @@ export default class EventPresenter {
       UserAction.UPDATE_POINT,
       updateType,
       update);
-
   };
 
   #handleDeleteClick = (point) => {
@@ -169,7 +168,6 @@ export default class EventPresenter {
       UserAction.UPDATE_POINT,
       UpdateType.PATCH,
       { ...this.#point, isFavorite: !this.#point.isFavorite });
-
   };
 
   #handleTypeChange = (type) => this.#offersModel.getOffersByType(type);

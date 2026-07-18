@@ -3,7 +3,6 @@ import { remove, render, RenderPosition } from '../framework/render.js';
 import { UserAction, UpdateType, BLANK_POINT, BLANK_DESTINATION } from '../utils/constants.js';
 
 export default class NewPointPresenter {
-
   #addFormComponent = null;
   #addFormContainer = null;
   #offersModel = null;

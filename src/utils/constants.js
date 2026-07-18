@@ -63,7 +63,12 @@ const UpdateType = {
   MAJOR: 'MAJOR',
 };
 
+const TimeLimit = {
+  LOWER_LIMIT: 350,
+  UPPER_LIMIT: 1000,
+};
+
 const AUTHORIZATION = 'Basic hS2sfS44wcl1sa3';
 const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';
 
-export { BLANK_DESTINATION, BLANK_POINT, TYPES, Messages, FilterType, SortType, UserAction, UpdateType, AUTHORIZATION, END_POINT };
+export { BLANK_DESTINATION, BLANK_POINT, TYPES, Messages, FilterType, SortType, UserAction, UpdateType, TimeLimit, AUTHORIZATION, END_POINT };

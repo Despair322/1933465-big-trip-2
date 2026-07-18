@@ -17,6 +17,7 @@ export default class EventFormView extends AbstractStatefulView {
   #isAddForm = false;
   #submitButton = null;
   #initialState = null;
+
   constructor({ point, destination, offers, allOffers, destinations, onFormSubmit, onRollupClick, onDeleteClick, onTypeChange, onDestinationChange, isAddForm = false }) {
     super();
     this.#destinations = destinations;
@@ -39,7 +40,6 @@ export default class EventFormView extends AbstractStatefulView {
     return createEventFormTemplate(this._state, this.#destinations, this.#isAddForm);
   }
 
-
   _restoreHandlers() {
     this.element.addEventListener('submit', this.#formSubmitHandler);
     this.element.querySelector('.event__rollup-btn')?.addEventListener('click', this.#rollupClickHandler);
@@ -60,7 +60,7 @@ export default class EventFormView extends AbstractStatefulView {
       this.#submitButton.disabled = true;
       return;
     }
-    if(this._state?.dateFrom?.getTime() >= this._state?.dateTo?.getTime()){
+    if (this._state?.dateFrom?.getTime() >= this._state?.dateTo?.getTime()) {
       this.#submitButton.disabled = true;
       return;
     }
@@ -201,7 +201,6 @@ export default class EventFormView extends AbstractStatefulView {
         onClose: this.#endDateChanger
       },
     );
-
   }
 
   updateElement(update) {

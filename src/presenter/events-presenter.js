@@ -1,13 +1,7 @@
 import UiBlocker from '../framework/ui-blocker/ui-blocker';
-import { UserAction } from '../utils/constants';
-// import { pointNotChanged } from '../utils/utils';
+import { UserAction, TimeLimit } from '../utils/constants';
 import EventPresenter from './event-presenter';
 import NewPointPresenter from './new-point-presenter';
-
-const TimeLimit = {
-  LOWER_LIMIT: 350,
-  UPPER_LIMIT: 1000,
-};
 
 export default class EventsPresenter {
   #eventPresenters = new Map();
@@ -59,10 +53,6 @@ export default class EventsPresenter {
   reset() {
     this.#eventPresenters.forEach((presenter) => presenter.destroy());
     this.#eventPresenters.clear();
-    if (this.#newPointPresenter) {
-      this.#newPointPresenter.destroy();
-      this.#newPointPresenter = null;
-    }
   }
 
   #render() {
@@ -80,7 +70,6 @@ export default class EventsPresenter {
     for (let i = 0; i < this.#points.length; i++) {
       this.#renderEvent(this.#points[i]);
     }
-
   }
 
   #handleModeChange = () => {
@@ -107,11 +96,6 @@ export default class EventsPresenter {
     this.#uiBLocker.block();
     switch (actionType) {
       case UserAction.UPDATE_POINT:
-        // console.log
-        // if(pointNotChanged(update, this.#eventPresenters.get(update.id).point)) {
-        //   this.#eventPresenters.get(update.id).setAborting();
-        //   break;
-        // }
         this.#eventPresenters.get(update.id).setSaving();
         try {
           await this.#pointsModel.updatePoint(updateType, update);
@@ -122,7 +106,6 @@ export default class EventsPresenter {
       case UserAction.ADD_POINT:
         this.#newPointPresenter.setSaving();
         try {
-
           await this.#pointsModel.addPoint(updateType, update);
           this.#destroyNewPoint();
         } catch (err) {
@@ -140,7 +123,6 @@ export default class EventsPresenter {
     }
     this.#uiBLocker.unblock();
   };
-
 
   #renderEvent(point) {
     const eventPresenter = new EventPresenter({

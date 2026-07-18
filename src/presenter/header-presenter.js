@@ -44,13 +44,16 @@ export default class HeaderPresenter {
     this.#newPointButtonComponent = new NewPointButtonView({
       onClick: this.#newPointButtonClickHandler
     });
-    render(this.#newPointButtonComponent, this.#headerContainer);
-    render(this.#tripInfoComponent, this.#headerContainer, RenderPosition.AFTERBEGIN);
-
+    this.#render();
   }
 
   #addObservers() {
     this.#pointsModel.addObserver(this.#handleModelEvent);
+  }
+
+  #render() {
+    render(this.#newPointButtonComponent, this.#headerContainer);
+    render(this.#tripInfoComponent, this.#headerContainer, RenderPosition.AFTERBEGIN);
   }
 
   #handleModelEvent = () => {
@@ -78,9 +81,7 @@ export default class HeaderPresenter {
     });
   }
 
-
   unblockButton() {
     this.#newPointButtonComponent.element.disabled = false;
   }
-
 }
