@@ -44,31 +44,34 @@ export default class EventFormView extends AbstractStatefulView {
     this.element.addEventListener('submit', this.#formSubmitHandler);
     this.element.querySelector('.event__rollup-btn')?.addEventListener('click', this.#rollupClickHandler);
     this.element.querySelector('.event__type-group').addEventListener('click', this.#typeChangeHandler);
-    this.element.querySelector('.event__input--destination').addEventListener('input', this.#destinationChangeHandler);
+    this.element.querySelector('.event__input--destination').addEventListener('change', this.#destinationChangeHandler);
     this.element.querySelector('.event__input--price').addEventListener('input', this.#priceChangeHandler);
     this.element.querySelector('.event__section--offers')?.addEventListener('click', this.#offersChangeHandler);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#deleteClickHandler);
     this.#setDatepickers();
+    this.#submitButton = this.element.querySelector('.event__save-btn');
+    this.#validateAndToggleSubmitButton();
+  }
+
+  #validateAndToggleSubmitButton() {
+    const isValid = this.#validateForm();
+    this.#submitButton.disabled = !isValid;
   }
 
   #validateForm() {
     if (!this._state.destination.id) {
-      this.#submitButton.disabled = true;
-      return;
+      return false;
     }
     if (!this._state?.dateFrom?.getTime() || !this._state?.dateTo?.getTime()) {
-      this.#submitButton.disabled = true;
-      return;
+      return false;
     }
     if (this._state?.dateFrom?.getTime() >= this._state?.dateTo?.getTime()) {
-      this.#submitButton.disabled = true;
-      return;
+      return false;
     }
-    if (!this._state.basePrice.toString().trim()) {
-      this.#submitButton.disabled = true;
-      return;
+    if (!this._state.basePrice.toString().trim() || this._state.basePrice <= 0 || isNaN(this._state.basePrice)) {
+      return false;
     }
-    this.#submitButton.disabled = false;
+    return true;
   }
 
   #typeChangeHandler = (evt) => {
@@ -87,11 +90,7 @@ export default class EventFormView extends AbstractStatefulView {
 
   #destinationChangeHandler = (evt) => {
     evt.preventDefault();
-    const newDestination = this.#handleDestinationChange(evt.target.value);
-    if (!newDestination) {
-      this.#submitButton.disabled = true;
-      return;
-    }
+    const newDestination = this.#handleDestinationChange(evt.target.value) || { id: '', name: evt.target.value, pictures: [], description: '' };
     this.updateElement({
       destination: newDestination,
       offers: [],
@@ -100,14 +99,10 @@ export default class EventFormView extends AbstractStatefulView {
   };
 
   #priceChangeHandler = (evt) => {
-    if (!evt.target.value.trim() || evt.target.value < 0 || isNaN(evt.target.value)) {
-      this.#submitButton.disabled = true;
-      return;
-    }
     this._setState({
-      basePrice: Number(evt.target.value),
+      basePrice: evt.target.value,
     });
-    this.#validateForm();
+    this.#validateAndToggleSubmitButton();
   };
 
   #offersChangeHandler = (evt) => {
@@ -128,13 +123,13 @@ export default class EventFormView extends AbstractStatefulView {
   #startDateChanger = ([userDate]) => {
     this._setState({ dateFrom: userDate });
     this.#datepickerEnd.set('minDate', userDate);
-    this.#validateForm();
+    this.#validateAndToggleSubmitButton();
   };
 
   #endDateChanger = ([userDate]) => {
     this._setState({ dateTo: userDate });
     this.#datepickerStart.set('maxDate', userDate);
-    this.#validateForm();
+    this.#validateAndToggleSubmitButton();
   };
 
   #rollupClickHandler = (evt) => {
@@ -149,7 +144,8 @@ export default class EventFormView extends AbstractStatefulView {
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    if (this.#submitButton.disabled) {
+    if (!this.#validateForm()) {
+      this.shake();
       return;
     }
     this.#handleFormSubmit(EventFormView.parseStateToPoint(this._state));
@@ -201,12 +197,6 @@ export default class EventFormView extends AbstractStatefulView {
         onClose: this.#endDateChanger
       },
     );
-  }
-
-  updateElement(update) {
-    super.updateElement(update);
-    this.#submitButton = this.element.querySelector('.event__save-btn');
-    this.#validateForm();
   }
 
   static parseEventToState({ point, destination, offers, allOffers }) {

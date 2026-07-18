@@ -18,7 +18,7 @@ class PointAdapter {
       'date_to': this.result.dateTo,
       'date_from': this.result.dateFrom,
       'is_favorite': this.result.isFavorite,
-      'base_price': this.result.basePrice
+      'base_price': Number(this.result.basePrice)
     };
     delete adaptedPoint.dateTo;
     delete adaptedPoint.dateFrom;
