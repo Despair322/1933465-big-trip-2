@@ -158,6 +158,7 @@ export default class BoardPresenter {
   }
 
   openAddForm() {
+    this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
     this.#eventsPresenter.init({ isAddFormOpen: true });
   }
 }

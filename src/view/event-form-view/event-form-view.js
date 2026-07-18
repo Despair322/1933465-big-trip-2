@@ -212,6 +212,7 @@ export default class EventFormView extends AbstractStatefulView {
     const point = deleteFlags(structuredClone(state));
     point.destination = point.destination.id;
     point.offers = point.offers.map((offer) => offer.id);
+    point.basePrice = Number(point.basePrice);
     return point;
   }
 }
