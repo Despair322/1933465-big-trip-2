@@ -63,6 +63,7 @@ export default class NewPointPresenter {
 
   #escapeKeydownHandler = (evt) => {
     if (evt.key === 'Escape') {
+      this.#handleCloseClick();
       this.destroy();
     }
   };
