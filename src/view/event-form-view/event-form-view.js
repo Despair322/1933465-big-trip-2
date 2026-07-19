@@ -1,6 +1,7 @@
 import { createEventFormTemplate } from './event-form-template.js';
 import AbstractStatefulView from '../../framework/view/abstract-stateful-view.js';
 import { deleteFlags, getFlags } from '../../utils/destination.js';
+import { debounce } from '../../utils/utils.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import dayjs from 'dayjs';
@@ -16,7 +17,7 @@ export default class EventFormView extends AbstractStatefulView {
   #datepickerEnd = null;
   #isAddForm = false;
   #submitButton = null;
-  #initialState = null;
+  #debounceValidateAndToggleSubmitButton = null;
 
   constructor({ point, destination, offers, allOffers, destinations, onFormSubmit, onRollupClick, onDeleteClick, onTypeChange, onDestinationChange, isAddForm = false }) {
     super();
@@ -28,12 +29,8 @@ export default class EventFormView extends AbstractStatefulView {
     this.#handleTypeChange = onTypeChange;
     this.#isAddForm = isAddForm;
     this._setState(EventFormView.parseEventToState({ point, destination, offers, allOffers }));
-    this.#initialState = structuredClone(this._state);
     this._restoreHandlers();
-    this.#submitButton = this.element.querySelector('.event__save-btn');
-    if (this.#isAddForm) {
-      this.#submitButton.disabled = true;
-    }
+    this.#debounceValidateAndToggleSubmitButton = debounce(() => this.#validateAndToggleSubmitButton(), 350);
   }
 
   get template() {
@@ -65,7 +62,7 @@ export default class EventFormView extends AbstractStatefulView {
     if (!this._state?.dateFrom?.getTime() || !this._state?.dateTo?.getTime()) {
       return false;
     }
-    if (this._state?.dateFrom?.getTime() >= this._state?.dateTo?.getTime()) {
+    if (dayjs(this._state.dateFrom).isAfter(this._state.dateTo) || dayjs(this._state.dateTo).isSame(this._state.dateFrom)) {
       return false;
     }
     if (!this._state.basePrice.toString().trim() || this._state.basePrice <= 0 || isNaN(this._state.basePrice)) {
@@ -102,7 +99,7 @@ export default class EventFormView extends AbstractStatefulView {
     this._setState({
       basePrice: evt.target.value,
     });
-    this.#validateAndToggleSubmitButton();
+    this.#debounceValidateAndToggleSubmitButton();
   };
 
   #offersChangeHandler = (evt) => {
@@ -122,14 +119,20 @@ export default class EventFormView extends AbstractStatefulView {
 
   #startDateChanger = ([userDate]) => {
     this._setState({ dateFrom: userDate });
-    this.#datepickerEnd.set('minDate', userDate);
-    this.#validateAndToggleSubmitButton();
+    if (userDate) {
+      const minDateTo = dayjs(userDate).add(1, 'minute').toDate();
+      this.#datepickerEnd.set('minDate', minDateTo);
+    } else {
+      this.#datepickerEnd.set('minDate', null);
+    }
+    this.#debounceValidateAndToggleSubmitButton();
   };
 
   #endDateChanger = ([userDate]) => {
     this._setState({ dateTo: userDate });
-    this.#datepickerStart.set('maxDate', userDate);
-    this.#validateAndToggleSubmitButton();
+    const maxDateFrom = dayjs(userDate).subtract(1, 'minute').toDate();
+    this.#datepickerStart.set('maxDate', maxDateFrom);
+    this.#debounceValidateAndToggleSubmitButton();
   };
 
   #rollupClickHandler = (evt) => {
@@ -184,8 +187,7 @@ export default class EventFormView extends AbstractStatefulView {
         ...commonOptions,
         defaultDate: this._state.dateFrom,
         onClose: this.#startDateChanger,
-        minDate: 'today',
-        maxDate: this._state.dateTo
+        maxDate: this._state.dateTo ? dayjs(this._state.dateTo).subtract(1, 'minute').toDate() : null
       },
     );
     this.#datepickerEnd = flatpickr(
@@ -193,7 +195,7 @@ export default class EventFormView extends AbstractStatefulView {
       {
         ...commonOptions,
         defaultDate: this._state.dateTo,
-        minDate: this._state.dateFrom || 'today',
+        minDate: this._state.dateFrom ? dayjs(this._state.dateFrom).add(1, 'minute').toDate() : null,
         onClose: this.#endDateChanger
       },
     );

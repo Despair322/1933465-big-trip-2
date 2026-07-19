@@ -2,10 +2,9 @@ import TripEventsListView from '../view/trip-events-list-view/trip-events-list-v
 import SortView from '../view/sort-view/sort-view.js';
 import { remove, render, RenderPosition } from '../framework/render.js';
 import { Messages, SortType, UpdateType, FilterType } from '../utils/constants.js';
-import { Sorts } from '../utils/sort.js';
+import { Sorts, generateSort } from '../utils/sort.js';
 import { Filters } from '../utils/filter.js';
 import EventsPresenter from './events-presenter.js';
-import { generateSort } from '../utils/utils.js';
 import LoadingView from '../view/loading-view/loading-veiw.js';
 import ErrorView from '../view/error-view/error-view.js';
 

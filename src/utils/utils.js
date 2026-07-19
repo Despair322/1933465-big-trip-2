@@ -1,6 +1,4 @@
 import dayjs from 'dayjs';
-import { Sorts } from './sort';
-import { SortType } from './constants';
 
 const DATE_FORMAT = 'MMM DD';
 const TIME_FORMAT = 'HH:mm';
@@ -23,9 +21,12 @@ function getTimeBetween(dateFrom, dateTo) {
   const days = Math.floor(duration / 1440);
   const hours = Math.floor((duration / 60) % 24);
   const minutes = (duration % 60);
-  const dStr = days ? ` ${days.toString().padStart(2, '0')}D ` : '';
-  const hStr = hours ? ` ${hours.toString().padStart(2, '0')}H ` : '';
-  const mStr = minutes ? ` ${minutes.toString().padStart(2, '0')}M` : '';
+
+  const formatNum = (value) => String(value).padStart(2, '0');
+
+  const dStr = days ? ` ${formatNum(days)}D ` : '';
+  const hStr = hours ? ` ${formatNum(hours)}H ` : '';
+  const mStr = minutes ? ` ${formatNum(minutes)}M` : '';
   return dStr + hStr + mStr;
 }
 
@@ -33,18 +34,9 @@ function getDuration({ dateFrom, dateTo }) {
   return dayjs(dateTo).diff(dayjs(dateFrom), 'm');
 }
 
-function generateSort() {
-  return Object.entries(SortType).map(
-    ([, value]) => ({
-      type: value,
-      isActive: Object.keys(Sorts).includes(value),
-    })
-  );
-}
-
 function isPointNotChanged(point, newPoint) {
-  return point.dateFrom.getTime() === new Date(newPoint.dateFrom).getTime()
-    && point.dateTo.getTime() === new Date(newPoint.dateTo).getTime()
+  return dayjs(point.dateFrom).isSame(dayjs(newPoint.dateFrom))
+    && dayjs(point.dateTo).isSame(dayjs(newPoint.dateTo))
     && point.basePrice === newPoint.basePrice
     && point.isFavorite === newPoint.isFavorite
     && point.offers.length === newPoint.offers.length
@@ -52,4 +44,15 @@ function isPointNotChanged(point, newPoint) {
     && point.type === newPoint.type;
 }
 
-export { humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration, generateSort, isPointNotChanged };
+function debounce(func, delay = 500) {
+  let timer = null;
+
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      func.apply(this, args);
+    }, delay);
+  };
+}
+
+export { humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration, isPointNotChanged, debounce };

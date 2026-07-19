@@ -8,4 +8,13 @@ const Sorts = {
   [SortType.PRICE]: (points) => points.sort((a, b) => b.basePrice - a.basePrice),
 };
 
-export { Sorts };
+function generateSort() {
+  return Object.entries(SortType).map(
+    ([, value]) => ({
+      type: value,
+      isActive: Object.keys(Sorts).includes(value),
+    })
+  );
+}
+
+export { Sorts, generateSort };
