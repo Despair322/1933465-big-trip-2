@@ -71,4 +71,11 @@ const TimeLimit = {
 const AUTHORIZATION = 'Basic hS2sfS44wcl1sa3';
 const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';
 
-export { BLANK_DESTINATION, BLANK_POINT, TYPES, Messages, FilterType, SortType, UserAction, UpdateType, TimeLimit, AUTHORIZATION, END_POINT };
+const DATE_FORMAT = 'MMM DD';
+const TIME_FORMAT = 'HH:mm';
+const DATETIME_FORMAT = 'DD/MM/YY HH:mm';
+const MINUTES_IN_HOUR = 60;
+const HOURS_IN_DAY = 24;
+const MINUTES_IN_DAY = HOURS_IN_DAY * MINUTES_IN_HOUR;
+
+export { BLANK_DESTINATION, BLANK_POINT, TYPES, Messages, FilterType, SortType, UserAction, UpdateType, TimeLimit, AUTHORIZATION, END_POINT, DATE_FORMAT, TIME_FORMAT, DATETIME_FORMAT, MINUTES_IN_HOUR, HOURS_IN_DAY, MINUTES_IN_DAY };
