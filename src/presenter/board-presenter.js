@@ -27,7 +27,6 @@ export default class BoardPresenter {
   #sort = null;
   #readyModelsCount = 0;
   #allInits = null;
-  #isAddFormOpen = false;
 
   constructor({ boardContainer, pointsModel, offersModel, filterModel, destinationsModel, onNewPointDestroy, allInits }) {
     this.#boardContainer = boardContainer;
@@ -54,7 +53,7 @@ export default class BoardPresenter {
       offersModel: this.#offersModel,
       destinationsModel: this.#destinationsModel,
       eventsComponent: this.#boardComponent.element,
-      onNewPointDestroy: this.#handleNewPointDestroy,
+      onNewPointDestroy: this.#newPointDestroyHandler,
     });
     this.#initialRender();
     this.#renderLoading();
@@ -114,8 +113,16 @@ export default class BoardPresenter {
   }
 
   #render() {
-    this.#renderSort({ currentSortType: this.#currentSortType });
-    this.#renderContent();
+    remove(this.#sortComponent);
+    if (this.#pointsModel.points.length > 0) {
+      this.#renderSort();
+    }
+    if (this.points.length === 0 && !this.#eventsPresenter.isAddFormOpen) {
+
+      this.#renderNoEvents();
+      return;
+    }
+    this.#eventsPresenter.init({ points: this.points, currentSortType: this.#currentSortType });
   }
 
   #renderSort() {
@@ -128,36 +135,27 @@ export default class BoardPresenter {
     render(this.#noEventsComponent, this.#boardContainer);
   }
 
-  #renderContent() {
-    if (this.points.length === 0 && !this.#isAddFormOpen) {
-      this.#renderNoEvents();
-      return;
-    }
-    this.#eventsPresenter.init({ points: this.points, currentSortType: this.#currentSortType });
-  }
-
   #resetList() {
     this.#eventsPresenter.reset();
-    this.#renderContent();
+    this.#render();
   }
 
   #clearBoard({ resetSortType = false } = {}) {
     this.#eventsPresenter.reset();
-    remove(this.#sortComponent);
     remove(this.#noEventsComponent);
     if (resetSortType) {
       this.#currentSortType = SortType.DAY;
     }
   }
 
-  #newPointDestroyHandler() {
-    this.#isAddFormOpen = false;
+  #newPointDestroyHandler = () => {
     this.#handleNewPointDestroy();
-  }
+    this.#eventsPresenter.isAddFormOpen = false;
+    this.#resetList();
+  };
 
   openAddForm() {
-    this.#isAddFormOpen = true;
+    this.#eventsPresenter.isAddFormOpen = true;
     this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
-    this.#eventsPresenter.init({ isAddFormOpen: true });
   }
 }

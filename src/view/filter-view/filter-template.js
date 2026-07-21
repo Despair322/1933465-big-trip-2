@@ -1,9 +1,11 @@
+import { FilterType } from '../../utils/constants.js';
+
 function createFilterItemTemplate({ type, count }, isChecked) {
   return `<div class="trip-filters__filter">
                   <input id="filter-${type}" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter"
                    value="${type}"
                   ${isChecked ? 'checked' : ''}
-                  ${count === 0 ? 'disabled' : ''}
+                  ${count === 0 && !isChecked && type !== FilterType.EVERYTHING ? 'disabled' : ''}
                   data-filter-type=${type}>
                   <label class="trip-filters__filter-label" for="filter-${type}">${type[0].toUpperCase() + type.slice(1)}</label>
                 </div>`;

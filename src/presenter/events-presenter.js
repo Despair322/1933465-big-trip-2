@@ -28,25 +28,9 @@ export default class EventsPresenter {
     this.#handleNewPointDestroy = onNewPointDestroy;
   }
 
-  init({ points, currentSortType, isAddFormOpen }) {
+  init({ points, currentSortType }) {
     this.#points = points || this.#points;
     this.#currentSortType = currentSortType || this.#currentSortType;
-    if (isAddFormOpen) {
-      this.#isAddFormOpen = isAddFormOpen;
-      this.#eventPresenters.forEach((presenter) => presenter.resetView());
-      if (this.#isAddFormOpen) {
-        if (this.#newPointPresenter === null) {
-          this.#newPointPresenter = new NewPointPresenter({
-            offersModel: this.#offersModel,
-            destinationsModel: this.#destinationsModel,
-            onCloseClick: this.#handleNewPointFromClose,
-            onDataChange: this.#handleViewAction
-          });
-        }
-        this.#newPointPresenter.init({ addFormContainer: this.#eventsComponent });
-      }
-      return;
-    }
     this.#render();
   }
 
@@ -81,7 +65,6 @@ export default class EventsPresenter {
   };
 
   #handleNewPointFromClose = () => {
-    this.#handleNewPointDestroy();
     this.#destroyNewPoint();
   };
 
@@ -115,7 +98,6 @@ export default class EventsPresenter {
       case UserAction.DELETE_POINT:
         this.#eventPresenters.get(update.id).setDeleting();
         try {
-
           await this.#pointsModel.deletePoint(updateType, update);
         } catch (err) {
           this.#eventPresenters.get(update.id).setAborting();
@@ -140,5 +122,13 @@ export default class EventsPresenter {
 
   updatePoint(point) {
     this.#eventPresenters.get(point.id).init({ point });
+  }
+
+  get isAddFormOpen() {
+    return this.#isAddFormOpen;
+  }
+
+  set isAddFormOpen(value) {
+    this.#isAddFormOpen = value;
   }
 }

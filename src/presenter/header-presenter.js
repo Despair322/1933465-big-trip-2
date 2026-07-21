@@ -1,4 +1,4 @@
-import { render, RenderPosition, replace } from '../framework/render';
+import { remove, render, RenderPosition, replace } from '../framework/render';
 import { calculateDuration, calculateTotalPrice, calulatePath } from '../utils/trip';
 import NewPointButtonView from '../view/new-point-button-view/new-point-button-view';
 import TripInfoView from '../view/trip-info-view/trip-info-view';
@@ -38,14 +38,7 @@ export default class HeaderPresenter {
       filterModel: this.#filterModel,
       pointsModel: this.#pointsModel,
     });
-    if (this.#points.length > 0) {
-      this.#tripInfoComponent = new TripInfoView({
-        title: calulatePath(this.#points),
-        dates: calculateDuration(this.#points),
-        cost: calculateTotalPrice(this.#points)
-      });
-      this.#filterPresenter.init();
-    }
+    this.#filterPresenter.init();
     this.#render();
   }
 
@@ -55,14 +48,23 @@ export default class HeaderPresenter {
 
   #render() {
     render(this.#newPointButtonComponent, this.#headerContainer);
-    if (!this.#tripInfoComponent) {
-      return;
-    }
-    render(this.#tripInfoComponent, this.#headerContainer, RenderPosition.AFTERBEGIN);
+    this.#renderTripInfo();
   }
 
   #handleModelEvent = () => {
     this.#preparePoints();
+    this.#renderTripInfo();
+    this.#filterPresenter.init();
+  };
+
+  #renderTripInfo() {
+    if (this.#points.length === 0) {
+      if (this.#tripInfoComponent) {
+        remove(this.#tripInfoComponent);
+        this.#tripInfoComponent = null;
+      }
+      return;
+    }
     const newTripInfoComponent = new TripInfoView({
       title: calulatePath(this.#points),
       dates: calculateDuration(this.#points),
@@ -74,8 +76,7 @@ export default class HeaderPresenter {
       render(newTripInfoComponent, this.#headerContainer, RenderPosition.AFTERBEGIN);
     }
     this.#tripInfoComponent = newTripInfoComponent;
-    this.#filterPresenter.init();
-  };
+  }
 
   #newPointButtonClickHandler = () => {
     this.#handleNewPointButtonClick();
