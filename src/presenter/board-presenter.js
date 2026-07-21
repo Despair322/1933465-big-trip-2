@@ -58,8 +58,8 @@ export default class BoardPresenter {
     this.#renderLoading();
     this.#sort = generateSort();
     this.#allInits.then((results) => {
+      remove(this.#loadingComponent);
       if (results.every((result) => result.status === 'fulfilled')) {
-        remove(this.#loadingComponent);
         this.#render();
       } else {
         render(new ErrorView(Messages.LOADING_ERROR), this.#boardContainer, RenderPosition.AFTERBEGIN);
@@ -67,7 +67,7 @@ export default class BoardPresenter {
     });
   }
 
-  #initialRender(){
+  #initialRender() {
     render(this.#boardComponent, this.#boardContainer);
   }
 
