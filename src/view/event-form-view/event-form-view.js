@@ -120,7 +120,7 @@ export default class EventFormView extends AbstractStatefulView {
   #startDateChangeHandler = ([userDate]) => {
     this._setState({ dateFrom: userDate });
     if (userDate) {
-      const minDateTo = getMinAllowedDate(userDate);
+      const minDateTo = getMaxAllowedDate(userDate);
       this.#datepickerEnd.set('minDate', minDateTo);
     } else {
       this.#datepickerEnd.set('minDate', null);
@@ -130,7 +130,7 @@ export default class EventFormView extends AbstractStatefulView {
 
   #endDateChangeHandler = ([userDate]) => {
     this._setState({ dateTo: userDate });
-    const maxDateFrom = getMaxAllowedDate(userDate);
+    const maxDateFrom = getMinAllowedDate(userDate);
     this.#datepickerStart.set('maxDate', maxDateFrom);
     this.#debounceValidateAndToggleSubmitButton();
   };
@@ -187,7 +187,7 @@ export default class EventFormView extends AbstractStatefulView {
         ...commonOptions,
         defaultDate: this._state.dateFrom,
         onClose: this.#startDateChangeHandler,
-        maxDate: getMaxAllowedDate(this._state.dateTo)
+        maxDate: getMinAllowedDate(this._state.dateTo)
       },
     );
     this.#datepickerEnd = flatpickr(
@@ -195,7 +195,7 @@ export default class EventFormView extends AbstractStatefulView {
       {
         ...commonOptions,
         defaultDate: this._state.dateTo,
-        minDate: getMinAllowedDate(this._state.dateFrom),
+        minDate: getMaxAllowedDate(this._state.dateFrom),
         onClose: this.#endDateChangeHandler
       },
     );
