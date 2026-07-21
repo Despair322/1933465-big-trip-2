@@ -21,31 +21,46 @@ function getTimeBetween(dateFrom, dateTo) {
   const days = Math.floor(duration / 1440);
   const hours = Math.floor((duration / 60) % 24);
   const minutes = (duration % 60);
-  const dStr = days ? ` ${days.toString().padStart(2, '0')}D ` : '';
-  const hStr = hours ? ` ${hours.toString().padStart(2, '0')}H ` : '';
-  const mStr = minutes ? ` ${minutes.toString().padStart(2, '0')}M` : '';
+
+  const formatNum = (value) => String(value).padStart(2, '0');
+
+  const dStr = days ? ` ${formatNum(days)}D ` : '';
+  const hStr = hours ? ` ${formatNum(hours)}H ` : '';
+  const mStr = minutes ? ` ${formatNum(minutes)}M` : '';
   return dStr + hStr + mStr;
+}
+
+function getMinAllowedDate(date) {
+  return date ? dayjs(date).subtract(1, 'minute').$d : null;
+}
+
+function getMaxAllowedDate(date) {
+  return date ? dayjs(date).add(1, 'minute').$d : null;
 }
 
 function getDuration({ dateFrom, dateTo }) {
   return dayjs(dateTo).diff(dayjs(dateFrom), 'm');
 }
 
-function getDestinationFlags(destination) {
-  const hasDescription = destination.description.length > 0;
-  const hasPictures = destination.pictures.length > 0;
-  const hasDescriptionBlock = hasDescription || hasPictures;
-  return { hasDescription, hasPictures, hasDescriptionBlock };
+function isPointNotChanged(point, newPoint) {
+  return dayjs(point.dateFrom).isSame(dayjs(newPoint.dateFrom))
+    && dayjs(point.dateTo).isSame(dayjs(newPoint.dateTo))
+    && point.basePrice === newPoint.basePrice
+    && point.isFavorite === newPoint.isFavorite
+    && point.offers.length === newPoint.offers.length
+    && point.destination.id === newPoint.destination.id
+    && point.type === newPoint.type;
 }
 
-function deleteFlags(item) {
-  delete item.allOffers;
-  delete item.hasDescription;
-  delete item.hasPictures;
-  delete item.hasOffers;
-  delete item.hasDescriptionBlock;
-  delete item.isSubmitDisabled;
-  return item;
+function debounce(func, delay = 500) {
+  let timer = null;
+
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      func.apply(this, args);
+    }, delay);
+  };
 }
 
-export { humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration, getDestinationFlags, deleteFlags };
+export { humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration, isPointNotChanged, debounce, getMinAllowedDate, getMaxAllowedDate };

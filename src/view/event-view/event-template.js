@@ -3,10 +3,10 @@ import { humanizeDate, humanizeTime, getTimeBetween } from '../../utils/utils.js
 function createOfferTemplate(offer) {
   const { title, price } = offer;
   return `<li class="event__offer">
-                    <span class="event__offer-title">${title}</span>
-                    &plus;&euro;&nbsp;
-                    <span class="event__offer-price">${price}</span>
-                  </li>`;
+            <span class="event__offer-title">${title}</span>
+            &plus;&euro;&nbsp;
+            <span class="event__offer-price">${price}</span>
+          </li>`;
 }
 
 export function createEventTemplate(point, destination, offers) {

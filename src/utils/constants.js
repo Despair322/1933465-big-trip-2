@@ -8,8 +8,8 @@ const BLANK_DESTINATION = {
 const BLANK_POINT = {
   id: '',
   basePrice: 0,
-  dateFrom: '',
-  dateTo: '',
+  dateFrom: undefined,
+  dateTo: undefined,
   destination: '',
   isFavorite: false,
   offers: [],
@@ -39,7 +39,8 @@ const Messages = {
   [FilterType.EVERYTHING]: 'Click New Event to create your first point',
   [FilterType.PAST]: 'There are no past events now',
   [FilterType.PRESENT]: 'There are no present events now',
-  [FilterType.FUTURE]: 'There are no future events now'
+  [FilterType.FUTURE]: 'There are no future events now',
+  LOADING_ERROR: 'Failed to load latest route information',
 };
 
 const SortType = {
@@ -53,13 +54,21 @@ const SortType = {
 const UserAction = {
   UPDATE_POINT: 'UPDATE_POINT',
   ADD_POINT: 'ADD_POINT',
-  DELETE_POINT: 'DELETE_POINT'
+  DELETE_POINT: 'DELETE_POINT',
 };
 
 const UpdateType = {
   PATCH: 'PATCH',
   MINOR: 'MINOR',
-  MAJOR: 'MAJOR'
+  MAJOR: 'MAJOR',
 };
 
-export { BLANK_DESTINATION, BLANK_POINT, TYPES, Messages, FilterType, SortType, UserAction, UpdateType };
+const TimeLimit = {
+  LOWER_LIMIT: 350,
+  UPPER_LIMIT: 1000,
+};
+
+const AUTHORIZATION = 'Basic hS2sfS44wcl1sa3';
+const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';
+
+export { BLANK_DESTINATION, BLANK_POINT, TYPES, Messages, FilterType, SortType, UserAction, UpdateType, TimeLimit, AUTHORIZATION, END_POINT };

@@ -6,12 +6,10 @@ function createSortItemTemplate(type, isActive, isChecked) {
               data-sort-type=${type}>
               <label class="trip-sort__btn" for="sort-${type}">${type}</label>
             </div>`;
-
 }
 
 export function createSortTemplate(sort, currentSortType) {
   return `<form class="trip-events__trip-sort  trip-sort" action="#" method="get">
             ${sort.map(({ type, isActive }) => createSortItemTemplate(type, isActive, type === currentSortType)).join('')}
-
           </form>`;
 }

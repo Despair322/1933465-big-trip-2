@@ -1,7 +1,9 @@
 import EventView from '../view/event-view/event-view.js';
 import EventFormView from '../view/event-form-view/event-form-view.js';
 import { remove, render, replace } from '../framework/render.js';
-import { UserAction, UpdateType } from '../utils/constants.js';
+import { UserAction, UpdateType, SortType } from '../utils/constants.js';
+import dayjs from 'dayjs';
+import { getDuration, isPointNotChanged } from '../utils/utils.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -22,6 +24,7 @@ export default class EventPresenter {
   #allOffers = [];
   #destinations = [];
   #mode = Mode.DEFAULT;
+  #currentSortType = null;
 
   #handleDataChange = null;
   #handleModeChange = null;
@@ -35,11 +38,14 @@ export default class EventPresenter {
     this.#handleModeChange = onModeChange;
   }
 
-  init(point) {
+  init({ point, currentSortType }) {
     this.#point = point;
     this.#destination = this.#destinationsModel.getDestinationById(this.#point.destination);
     this.#offers = this.#point.offers.map((offer) => this.#offersModel.getOfferByTypeAndId(this.#point.type, offer));
     this.#allOffers = this.#offersModel.getOffersByType(this.#point.type);
+    if (!this.#currentSortType) {
+      this.#currentSortType = currentSortType;
+    }
 
     const prevEventComponent = this.#eventComponent;
     const prevEditFormComponent = this.#editFormComponent;
@@ -75,7 +81,9 @@ export default class EventPresenter {
       replace(this.#eventComponent, prevEventComponent);
     }
     if (this.#mode === Mode.EDITING) {
-      replace(this.#editFormComponent, prevEditFormComponent);
+      replace(this.#eventComponent, prevEditFormComponent);
+      this.#mode = Mode.DEFAULT;
+
     }
     remove(prevEventComponent);
     remove(prevEditFormComponent);
@@ -93,6 +101,9 @@ export default class EventPresenter {
   }
 
   #closeForm = () => {
+    if (this.#mode === Mode.DEFAULT) {
+      return;
+    }
     this.#editFormComponent.reset({ point: this.#point, destination: this.#destination, offers: this.#offers, allOffers: this.#allOffers });
     replace(this.#eventComponent, this.#editFormComponent);
     window.removeEventListener('keydown', this.#escapeKeydownHandler);
@@ -117,11 +128,32 @@ export default class EventPresenter {
   };
 
   #handleFormSubmit = (update) => {
+    if (isPointNotChanged(update, this.#point)) {
+      this.#editFormComponent.shake();
+      return;
+    }
+    let updateType = UpdateType.PATCH;
+    switch (this.#currentSortType) {
+      case SortType.DAY:
+        if (!dayjs(update.dateFrom).isSame(dayjs(this.#point.dateFrom))) {
+          updateType = UpdateType.MINOR;
+        }
+        break;
+      case SortType.PRICE:
+        if (update.basePrice !== this.#point.basePrice) {
+          updateType = UpdateType.MINOR;
+        }
+        break;
+      case SortType.TIME:
+        if (getDuration(update) !== getDuration(this.#point)) {
+          updateType = UpdateType.MINOR;
+        }
+        break;
+    }
     this.#handleDataChange(
       UserAction.UPDATE_POINT,
-      UpdateType.PATCH,
+      updateType,
       update);
-    this.#closeForm();
   };
 
   #handleDeleteClick = (point) => {
@@ -152,5 +184,42 @@ export default class EventPresenter {
     } else {
       this.#closeForm();
     }
+  }
+
+  setSaving() {
+    if (this.#mode === Mode.EDITING) {
+      this.#editFormComponent.updateElement({
+        isSaving: true,
+        isDisabled: true
+      });
+    }
+  }
+
+  setDeleting() {
+    if (this.#mode === Mode.EDITING) {
+      this.#editFormComponent.updateElement({
+        isDeleting: true,
+        isDisabled: true
+      });
+    }
+  }
+
+  setAborting() {
+    if (this.#mode === Mode.DEFAULT) {
+      this.#eventComponent.shake();
+      return;
+    }
+    const resetFormState = () => {
+      this.#editFormComponent.updateElement({
+        isSaving: false,
+        isDisabled: false,
+        isDeleting: false
+      });
+    };
+    this.#editFormComponent.shake(resetFormState);
+  }
+
+  get mode() {
+    return this.#mode;
   }
 }

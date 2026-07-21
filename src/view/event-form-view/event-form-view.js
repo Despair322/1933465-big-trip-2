@@ -1,6 +1,7 @@
 import { createEventFormTemplate } from './event-form-template.js';
 import AbstractStatefulView from '../../framework/view/abstract-stateful-view.js';
-import { deleteFlags, getDestinationFlags } from '../../utils/utils.js';
+import { deleteFlags, getFlags } from '../../utils/destination.js';
+import { debounce, getMaxAllowedDate, getMinAllowedDate } from '../../utils/utils.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import dayjs from 'dayjs';
@@ -16,6 +17,8 @@ export default class EventFormView extends AbstractStatefulView {
   #datepickerEnd = null;
   #isAddForm = false;
   #submitButton = null;
+  #debounceValidateAndToggleSubmitButton = null;
+
   constructor({ point, destination, offers, allOffers, destinations, onFormSubmit, onRollupClick, onDeleteClick, onTypeChange, onDestinationChange, isAddForm = false }) {
     super();
     this.#destinations = destinations;
@@ -27,10 +30,7 @@ export default class EventFormView extends AbstractStatefulView {
     this.#isAddForm = isAddForm;
     this._setState(EventFormView.parseEventToState({ point, destination, offers, allOffers }));
     this._restoreHandlers();
-    this.#submitButton = this.element.querySelector('.event__save-btn');
-    if (this.#isAddForm) {
-      this.#submitButton.disabled = true;
-    }
+    this.#debounceValidateAndToggleSubmitButton = debounce(() => this.#validateAndToggleSubmitButton(), 350);
   }
 
   get template() {
@@ -41,35 +41,34 @@ export default class EventFormView extends AbstractStatefulView {
     this.element.addEventListener('submit', this.#formSubmitHandler);
     this.element.querySelector('.event__rollup-btn')?.addEventListener('click', this.#rollupClickHandler);
     this.element.querySelector('.event__type-group').addEventListener('click', this.#typeChangeHandler);
-    this.element.querySelector('.event__input--destination').addEventListener('input', this.#destinationChangeHandler);
+    this.element.querySelector('.event__input--destination').addEventListener('change', this.#destinationChangeHandler);
     this.element.querySelector('.event__input--price').addEventListener('input', this.#priceChangeHandler);
     this.element.querySelector('.event__section--offers')?.addEventListener('click', this.#offersChangeHandler);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#deleteClickHandler);
     this.#setDatepickers();
+    this.#submitButton = this.element.querySelector('.event__save-btn');
+    this.#validateAndToggleSubmitButton();
+  }
+
+  #validateAndToggleSubmitButton() {
+    const isValid = this.#validateForm();
+    this.#submitButton.disabled = !isValid;
   }
 
   #validateForm() {
     if (!this._state.destination.id) {
-      this.#submitButton.disabled = true;
-      return;
+      return false;
     }
-    if (this._state.dateFrom > this._state.dateTo) {
-      this.#submitButton.disabled = true;
-      return;
+    if (!this._state?.dateFrom?.getTime() || !this._state?.dateTo?.getTime()) {
+      return false;
     }
-    if (!this._state.dateFrom || this._state.dateFrom.length === 0) {
-      this.#submitButton.disabled = true;
-      return;
+    if (dayjs(this._state.dateFrom).isAfter(this._state.dateTo) || dayjs(this._state.dateTo).isSame(this._state.dateFrom)) {
+      return false;
     }
-    if (!this._state.dateTo || this._state.dateTo.length === 0) {
-      this.#submitButton.disabled = true;
-      return;
+    if (!this._state.basePrice.toString().trim() || this._state.basePrice <= 0 || isNaN(this._state.basePrice)) {
+      return false;
     }
-    if (this._state.basePrice.trim() === '') {
-      this.#submitButton.disabled = true;
-      return;
-    }
-    this.#submitButton.disabled = false;
+    return true;
   }
 
   #typeChangeHandler = (evt) => {
@@ -88,27 +87,19 @@ export default class EventFormView extends AbstractStatefulView {
 
   #destinationChangeHandler = (evt) => {
     evt.preventDefault();
-    const newDestination = this.#handleDestinationChange(evt.target.value);
-    if (!newDestination) {
-      this.#submitButton.disabled = true;
-      return;
-    }
+    const newDestination = this.#handleDestinationChange(evt.target.value) || { id: '', name: evt.target.value, pictures: [], description: '' };
     this.updateElement({
       destination: newDestination,
       offers: [],
-      ...getDestinationFlags(newDestination)
+      ...getFlags(newDestination),
     });
   };
 
   #priceChangeHandler = (evt) => {
-    if (evt.target.value.trim() === '' || evt.target.value < 0 || isNaN(evt.target.value)) {
-      this.#submitButton.disabled = true;
-      return;
-    }
     this._setState({
-      basePrice: Number(evt.target.value),
+      basePrice: evt.target.value,
     });
-    this.#validateForm();
+    this.#debounceValidateAndToggleSubmitButton();
   };
 
   #offersChangeHandler = (evt) => {
@@ -126,20 +117,22 @@ export default class EventFormView extends AbstractStatefulView {
     }
   };
 
-  #startDateChanger = ([userDate]) => {
+  #startDateChangeHandler = ([userDate]) => {
     this._setState({ dateFrom: userDate });
-    this.#datepickerEnd.set('minDate', userDate);
-
-    if (dayjs(this._state.dateTo) < dayjs(userDate)) {
-      this.#datepickerEnd.set('defaultDate', userDate);
-      this.updateElement({ dateTo: userDate });
+    if (userDate) {
+      const minDateTo = getMinAllowedDate(userDate);
+      this.#datepickerEnd.set('minDate', minDateTo);
+    } else {
+      this.#datepickerEnd.set('minDate', null);
     }
-    this.#validateForm();
+    this.#debounceValidateAndToggleSubmitButton();
   };
 
-  #endDateChanger = ([userDate]) => {
+  #endDateChangeHandler = ([userDate]) => {
     this._setState({ dateTo: userDate });
-    this.#validateForm();
+    const maxDateFrom = getMaxAllowedDate(userDate);
+    this.#datepickerStart.set('maxDate', maxDateFrom);
+    this.#debounceValidateAndToggleSubmitButton();
   };
 
   #rollupClickHandler = (evt) => {
@@ -154,7 +147,8 @@ export default class EventFormView extends AbstractStatefulView {
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    if (this.#submitButton.disabled) {
+    if (!this.#validateForm()) {
+      this.shake();
       return;
     }
     this.#handleFormSubmit(EventFormView.parseStateToPoint(this._state));
@@ -168,50 +162,51 @@ export default class EventFormView extends AbstractStatefulView {
 
   removeElement() {
     super.removeElement();
-    this.#datepickerStart.destroy();
-    this.#datepickerStart = null;
-    this.#datepickerEnd.destroy();
-    this.#datepickerEnd = null;
+    if (this.#datepickerStart) {
+      this.#datepickerStart.destroy();
+      this.#datepickerStart = null;
+    }
+
+    if (this.#datepickerEnd) {
+      this.#datepickerEnd.destroy();
+      this.#datepickerEnd = null;
+    }
   }
 
   #setDatepickers() {
+    const commonOptions = {
+      dateFormat: 'd/m/y H:i',
+      enableTime: true,
+      // eslint-disable-next-line camelcase
+      time_24hr: true,
+      locale: { firstDayOfWeek: 1 },
+    };
     this.#datepickerStart = flatpickr(
       this.element.querySelector('[id^="event-start-time"]'),
       {
-        dateFormat: 'd/m/y H:i',
-        enableTime: true,
-        // eslint-disable-next-line camelcase
-        time_24hr: true,
+        ...commonOptions,
         defaultDate: this._state.dateFrom,
-        onChange: this.#startDateChanger,
-        minDate: 'today'
+        onClose: this.#startDateChangeHandler,
+        maxDate: getMaxAllowedDate(this._state.dateTo)
       },
     );
     this.#datepickerEnd = flatpickr(
       this.element.querySelector('[id^="event-end-time"]'),
       {
-        dateFormat: 'd/m/y H:i',
-        enableTime: true,
-        // eslint-disable-next-line camelcase
-        time_24hr: true,
+        ...commonOptions,
         defaultDate: this._state.dateTo,
-        minDate: this._state.dateFrom,
-        onChange: this.#endDateChanger
+        minDate: getMinAllowedDate(this._state.dateFrom),
+        onClose: this.#endDateChangeHandler
       },
     );
-
-  }
-
-  updateElement(update) {
-    super.updateElement(update);
-    this.#submitButton = this.element.querySelector('.event__save-btn');
-    this.#validateForm();
   }
 
   static parseEventToState({ point, destination, offers, allOffers }) {
-    const hasOffers = offers.length > 0;
+    const hasOffers = allOffers.length > 0;
+    const dateFrom = point.dateFrom ? dayjs(point.dateFrom).$d : undefined;
+    const dateTo = point.dateTo ? dayjs(point.dateTo).$d : undefined;
     return {
-      ...point, destination, offers, allOffers, hasOffers, ...getDestinationFlags(destination)
+      ...point, dateFrom, dateTo, destination, offers, allOffers, hasOffers, ...getFlags(destination),
     };
   }
 
@@ -219,6 +214,7 @@ export default class EventFormView extends AbstractStatefulView {
     const point = deleteFlags(structuredClone(state));
     point.destination = point.destination.id;
     point.offers = point.offers.map((offer) => offer.id);
+    point.basePrice = Number(point.basePrice);
     return point;
   }
 }
