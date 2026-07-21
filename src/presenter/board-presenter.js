@@ -26,7 +26,6 @@ export default class BoardPresenter {
   #eventsPresenter = null;
   #sort = null;
   #readyModelsCount = 0;
-  #isLoading = true;
   #allInits = null;
 
   constructor({ boardContainer, pointsModel, offersModel, filterModel, destinationsModel, onNewPointDestroy, allInits }) {
@@ -55,16 +54,21 @@ export default class BoardPresenter {
       destinationsModel: this.#destinationsModel,
       onNewPointDestroy: this.#handleNewPointDestroy,
     });
+    this.#initialRender();
+    this.#renderLoading();
     this.#sort = generateSort();
     this.#allInits.then((results) => {
       if (results.every((result) => result.status === 'fulfilled')) {
         remove(this.#loadingComponent);
-        this.#isLoading = false;
         this.#render();
       } else {
         render(new ErrorView(Messages.LOADING_ERROR), this.#boardContainer, RenderPosition.AFTERBEGIN);
       }
     });
+  }
+
+  #initialRender(){
+    render(this.#boardComponent, this.#boardContainer);
   }
 
   get points() {
@@ -108,13 +112,7 @@ export default class BoardPresenter {
   }
 
   #render() {
-    render(this.#boardComponent, this.#boardContainer);
-    if (this.#isLoading) {
-      this.#renderLoading();
-      return;
-    }
     this.#renderSort({ currentSortType: this.#currentSortType });
-
     this.#renderContent();
   }
 
@@ -125,7 +123,6 @@ export default class BoardPresenter {
 
   #renderNoEvents() {
     this.#noEventsComponent = new ErrorView(Messages[this.#filterModel.filter]);
-    remove(this.#loadingComponent);
     render(this.#noEventsComponent, this.#boardContainer);
   }
 
@@ -144,7 +141,6 @@ export default class BoardPresenter {
 
   #clearBoard({ resetSortType = false } = {}) {
     this.#eventsPresenter.reset();
-    remove(this.#boardComponent);
     remove(this.#sortComponent);
     remove(this.#noEventsComponent);
     if (resetSortType) {
