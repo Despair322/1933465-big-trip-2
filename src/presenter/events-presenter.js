@@ -20,15 +20,15 @@ export default class EventsPresenter {
   #handleNewPointDestroy = null;
   #isAddFormOpen = false;
 
-  constructor({ pointsModel, offersModel, destinationsModel, onNewPointDestroy }) {
+  constructor({ pointsModel, offersModel, destinationsModel, eventsComponent, onNewPointDestroy }) {
     this.#offersModel = offersModel;
     this.#destinationsModel = destinationsModel;
     this.#pointsModel = pointsModel;
+    this.#eventsComponent = eventsComponent;
     this.#handleNewPointDestroy = onNewPointDestroy;
   }
 
-  init({ eventsComponent, points, currentSortType, isAddFormOpen }) {
-    this.#eventsComponent = eventsComponent || this.#eventsComponent;
+  init({ points, currentSortType, isAddFormOpen }) {
     this.#points = points || this.#points;
     this.#currentSortType = currentSortType || this.#currentSortType;
     if (isAddFormOpen) {
@@ -115,6 +115,7 @@ export default class EventsPresenter {
       case UserAction.DELETE_POINT:
         this.#eventPresenters.get(update.id).setDeleting();
         try {
+
           await this.#pointsModel.deletePoint(updateType, update);
         } catch (err) {
           this.#eventPresenters.get(update.id).setAborting();

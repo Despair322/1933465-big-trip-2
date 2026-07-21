@@ -27,6 +27,7 @@ export default class BoardPresenter {
   #sort = null;
   #readyModelsCount = 0;
   #allInits = null;
+  #isAddFormOpen = false;
 
   constructor({ boardContainer, pointsModel, offersModel, filterModel, destinationsModel, onNewPointDestroy, allInits }) {
     this.#boardContainer = boardContainer;
@@ -52,6 +53,7 @@ export default class BoardPresenter {
       pointsModel: this.#pointsModel,
       offersModel: this.#offersModel,
       destinationsModel: this.#destinationsModel,
+      eventsComponent: this.#boardComponent.element,
       onNewPointDestroy: this.#handleNewPointDestroy,
     });
     this.#initialRender();
@@ -127,11 +129,11 @@ export default class BoardPresenter {
   }
 
   #renderContent() {
-    if (this.points.length === 0) {
+    if (this.points.length === 0 && !this.#isAddFormOpen) {
       this.#renderNoEvents();
       return;
     }
-    this.#eventsPresenter.init({ eventsComponent: this.#boardComponent.element, points: this.points, currentSortType: this.#currentSortType });
+    this.#eventsPresenter.init({ points: this.points, currentSortType: this.#currentSortType });
   }
 
   #resetList() {
@@ -149,10 +151,12 @@ export default class BoardPresenter {
   }
 
   #newPointDestroyHandler() {
+    this.#isAddFormOpen = false;
     this.#handleNewPointDestroy();
   }
 
   openAddForm() {
+    this.#isAddFormOpen = true;
     this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
     this.#eventsPresenter.init({ isAddFormOpen: true });
   }
