@@ -30,6 +30,14 @@ function getTimeBetween(dateFrom, dateTo) {
   return dStr + hStr + mStr;
 }
 
+function getMinAllowedDate(date) {
+  return date ? dayjs(date).subtract(1, 'minute').$d : null;
+}
+
+function getMaxAllowedDate(date) {
+  return date ? dayjs(date).add(1, 'minute').$d : null;
+}
+
 function getDuration({ dateFrom, dateTo }) {
   return dayjs(dateTo).diff(dayjs(dateFrom), 'm');
 }
@@ -55,4 +63,4 @@ function debounce(func, delay = 500) {
   };
 }
 
-export { humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration, isPointNotChanged, debounce };
+export { humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration, isPointNotChanged, debounce, getMinAllowedDate, getMaxAllowedDate };

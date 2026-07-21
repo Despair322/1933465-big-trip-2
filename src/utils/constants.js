@@ -40,7 +40,7 @@ const Messages = {
   [FilterType.PAST]: 'There are no past events now',
   [FilterType.PRESENT]: 'There are no present events now',
   [FilterType.FUTURE]: 'There are no future events now',
-  LOADING_ERROR: 'Error loading data',
+  LOADING_ERROR: 'Failed to load latest route information',
 };
 
 const SortType = {

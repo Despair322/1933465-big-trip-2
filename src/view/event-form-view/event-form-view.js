@@ -1,7 +1,7 @@
 import { createEventFormTemplate } from './event-form-template.js';
 import AbstractStatefulView from '../../framework/view/abstract-stateful-view.js';
 import { deleteFlags, getFlags } from '../../utils/destination.js';
-import { debounce } from '../../utils/utils.js';
+import { debounce, getMaxAllowedDate, getMinAllowedDate } from '../../utils/utils.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import dayjs from 'dayjs';
@@ -117,10 +117,10 @@ export default class EventFormView extends AbstractStatefulView {
     }
   };
 
-  #startDateChanger = ([userDate]) => {
+  #startDateChangeHandler = ([userDate]) => {
     this._setState({ dateFrom: userDate });
     if (userDate) {
-      const minDateTo = dayjs(userDate).add(1, 'minute').toDate();
+      const minDateTo = getMinAllowedDate(userDate);
       this.#datepickerEnd.set('minDate', minDateTo);
     } else {
       this.#datepickerEnd.set('minDate', null);
@@ -128,9 +128,9 @@ export default class EventFormView extends AbstractStatefulView {
     this.#debounceValidateAndToggleSubmitButton();
   };
 
-  #endDateChanger = ([userDate]) => {
+  #endDateChangeHandler = ([userDate]) => {
     this._setState({ dateTo: userDate });
-    const maxDateFrom = dayjs(userDate).subtract(1, 'minute').toDate();
+    const maxDateFrom = getMaxAllowedDate(userDate);
     this.#datepickerStart.set('maxDate', maxDateFrom);
     this.#debounceValidateAndToggleSubmitButton();
   };
@@ -186,8 +186,8 @@ export default class EventFormView extends AbstractStatefulView {
       {
         ...commonOptions,
         defaultDate: this._state.dateFrom,
-        onClose: this.#startDateChanger,
-        maxDate: this._state.dateTo ? dayjs(this._state.dateTo).subtract(1, 'minute').toDate() : null
+        onClose: this.#startDateChangeHandler,
+        maxDate: getMaxAllowedDate(this._state.dateTo)
       },
     );
     this.#datepickerEnd = flatpickr(
@@ -195,8 +195,8 @@ export default class EventFormView extends AbstractStatefulView {
       {
         ...commonOptions,
         defaultDate: this._state.dateTo,
-        minDate: this._state.dateFrom ? dayjs(this._state.dateFrom).add(1, 'minute').toDate() : null,
-        onClose: this.#endDateChanger
+        minDate: getMinAllowedDate(this._state.dateFrom),
+        onClose: this.#endDateChangeHandler
       },
     );
   }
