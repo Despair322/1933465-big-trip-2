@@ -40,12 +40,13 @@ function getDuration({ dateFrom, dateTo }) {
 }
 
 function isPointNotChanged(point, newPoint) {
+  const isOffersEqual = point.offers.length === newPoint.offers.length && point.offers.every((offer) => newPoint.offers.some((newOffer) => newOffer === offer));
   return dayjs(point.dateFrom).isSame(dayjs(newPoint.dateFrom))
     && dayjs(point.dateTo).isSame(dayjs(newPoint.dateTo))
     && point.basePrice === newPoint.basePrice
     && point.isFavorite === newPoint.isFavorite
-    && point.offers.length === newPoint.offers.length
-    && point.destination.id === newPoint.destination.id
+    && isOffersEqual
+    && point.destination === newPoint.destination
     && point.type === newPoint.type;
 }
 
