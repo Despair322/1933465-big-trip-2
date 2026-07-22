@@ -60,7 +60,6 @@ export default class EventsPresenter {
     this.#eventPresenters.forEach((presenter) => presenter.resetView());
     if (this.#newPointPresenter) {
       this.#destroyNewPoint();
-      this.#handleNewPointDestroy();
     }
   };
 

@@ -151,7 +151,9 @@ export default class BoardPresenter {
   #newPointDestroyHandler = () => {
     this.#handleNewPointDestroy();
     this.#eventsPresenter.isAddFormOpen = false;
-    this.#resetList();
+    if (this.#pointsModel.points.length === 0) {
+      this.#resetList();
+    }
   };
 
   openAddForm() {

@@ -21,9 +21,9 @@ function getTimeBetween(dateFrom, dateTo) {
 
   const formatNum = (value) => String(value).padStart(2, '0');
 
-  const dStr = days ? ` ${formatNum(days)}D ` : '';
-  const hStr = hours ? ` ${formatNum(hours)}H ` : '';
-  const mStr = minutes ? ` ${formatNum(minutes)}M` : '';
+  const dStr = days ? `${formatNum(days)}d ` : '';
+  const hStr = days || hours ? `${formatNum(hours)}h ` : '';
+  const mStr = `${formatNum(minutes)}m`;
   return dStr + hStr + mStr;
 }
 

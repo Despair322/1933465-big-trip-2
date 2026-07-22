@@ -1,4 +1,6 @@
 import { remove, render, RenderPosition, replace } from '../framework/render';
+import { SortType } from '../utils/constants';
+import { Sorts } from '../utils/sort';
 import { calculateDuration, calculateTotalPrice, calulatePath } from '../utils/trip';
 import NewPointButtonView from '../view/new-point-button-view/new-point-button-view';
 import TripInfoView from '../view/trip-info-view/trip-info-view';
@@ -84,7 +86,8 @@ export default class HeaderPresenter {
   };
 
   #preparePoints() {
-    this.#points = this.#pointsModel.points.map((point) => {
+    const points = this.#pointsModel.points;
+    this.#points = Sorts[SortType.DAY](points).map((point) => {
       const offers = point.offers.map((offer) =>
         this.#offersModel.getOfferByTypeAndId(point.type, offer));
       const destination = this.#destinationsModel.getDestinationById(point.destination);

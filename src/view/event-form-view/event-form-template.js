@@ -71,7 +71,7 @@ export function createEventFormTemplate(state, destinations, isAddForm) {
   const pointTypesElement = TYPES.map((innerType) => createPointTypeTemplate(innerType, id)).join('');
   const destinationsElement = destinations.map((innerDestination) => `<option value = "${innerDestination.name}" ></option> `).join('');
 
-  return `< li class="trip-events__item" >
+  return `<li class="trip-events__item">
   <form class="event event--edit" action="#" method="post">
     <header class="event__header">
       <div class="event__type-wrapper">
@@ -115,9 +115,7 @@ export function createEventFormTemplate(state, destinations, isAddForm) {
         <input class="event__input  event__input--price" id="event-price-${id}" type="text" name="event-price" value="${basePrice}">
       </div>
 
-      <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>
-        ${createAddButtonText(isSaving, isAddForm)}
-      </button >
+      <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${createAddButtonText(isSaving, isAddForm)}</button>
       <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>${createResetButtonText(isDeleting, isAddForm)}</button>
       ${createRollup(isAddForm)}
     </header >
@@ -130,5 +128,5 @@ export function createEventFormTemplate(state, destinations, isAddForm) {
         </section>` : ''}
       </section >
     </form >
-  </ > `;
+  </li> `;
 }
