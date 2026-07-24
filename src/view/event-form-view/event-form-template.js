@@ -41,7 +41,7 @@ function createPointTypeTemplate(type, id) {
 
 function createAddButtonText(isSaving, isAddForm) {
   if (isAddForm) {
-    return isSaving ? 'Adding...' : 'Add';
+    return isSaving ? 'Adding...' : 'Save';
   } else {
     return isSaving ? 'Saving...' : 'Save';
   }
