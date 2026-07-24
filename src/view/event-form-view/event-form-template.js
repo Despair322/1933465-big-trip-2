@@ -1,5 +1,6 @@
 import { TYPES } from '../../utils/constants.js';
 import { humanizeDateAndTime } from '../../utils/utils.js';
+import he from 'he';
 
 function createOfferTemplate(offer, pointId, isChecked = false) {
   const { title, price, id } = offer;
@@ -40,7 +41,7 @@ function createPointTypeTemplate(type, id) {
 
 function createAddButtonText(isSaving, isAddForm) {
   if (isAddForm) {
-    return isSaving ? 'Adding...' : 'Add';
+    return isSaving ? 'Adding...' : 'Save';
   } else {
     return isSaving ? 'Saving...' : 'Save';
   }
@@ -67,11 +68,11 @@ export function createEventFormTemplate(state, destinations, isAddForm) {
   const { name, pictures, description } = state.destination;
   const offersElement = hasOffers ? createOffersTemplate(offers, allOffers, id) : '';
   const picturesElement = hasPictures ? createPhotosTemplate(pictures) : '';
-  const descriptionElement = hasDescription ? `<p class="event__destination-description"> ${description}</> ` : '';
+  const descriptionElement = hasDescription ? `<p class="event__destination-description"> ${he.encode(description || '')}</> ` : '';
   const pointTypesElement = TYPES.map((innerType) => createPointTypeTemplate(innerType, id)).join('');
   const destinationsElement = destinations.map((innerDestination) => `<option value = "${innerDestination.name}" ></option> `).join('');
 
-  return `< li class="trip-events__item" >
+  return `<li class="trip-events__item">
   <form class="event event--edit" action="#" method="post">
     <header class="event__header">
       <div class="event__type-wrapper">
@@ -93,7 +94,7 @@ export function createEventFormTemplate(state, destinations, isAddForm) {
         <label class="event__label  event__type-output" for="event-destination-${id}">
           ${type}
         </label>
-        <input class="event__input  event__input--destination" id="event-destination-${id}" type="text" name="event-destination" value="${name}" list="destination-list-${id}">
+        <input class="event__input  event__input--destination" id="event-destination-${id}" type="text" name="event-destination" value="${he.encode(name)}" list="destination-list-${id}">
           <datalist id="destination-list-${id}">
             ${destinationsElement}
           </datalist>
@@ -112,12 +113,10 @@ export function createEventFormTemplate(state, destinations, isAddForm) {
           <span class="visually-hidden">Price</span>
             &euro;
         </label>
-        <input class="event__input  event__input--price" id="event-price-${id}" type="text" name="event-price" value="${basePrice}">
+        <input class="event__input  event__input--price" id="event-price-${id}" type="text" name="event-price" value="${he.encode((basePrice || 0).toString())}">
       </div>
 
-      <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>
-        ${createAddButtonText(isSaving, isAddForm)}
-      </button >
+      <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${createAddButtonText(isSaving, isAddForm)}</button>
       <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>${createResetButtonText(isDeleting, isAddForm)}</button>
       ${createRollup(isAddForm)}
     </header >
@@ -130,5 +129,5 @@ export function createEventFormTemplate(state, destinations, isAddForm) {
         </section>` : ''}
       </section >
     </form >
-  </ > `;
+  </li> `;
 }

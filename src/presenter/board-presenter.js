@@ -52,14 +52,15 @@ export default class BoardPresenter {
       pointsModel: this.#pointsModel,
       offersModel: this.#offersModel,
       destinationsModel: this.#destinationsModel,
-      onNewPointDestroy: this.#handleNewPointDestroy,
+      eventsComponent: this.#boardComponent.element,
+      onNewPointDestroy: this.#newPointDestroyHandler,
     });
     this.#initialRender();
     this.#renderLoading();
     this.#sort = generateSort();
     this.#allInits.then((results) => {
+      remove(this.#loadingComponent);
       if (results.every((result) => result.status === 'fulfilled')) {
-        remove(this.#loadingComponent);
         this.#render();
       } else {
         render(new ErrorView(Messages.LOADING_ERROR), this.#boardContainer, RenderPosition.AFTERBEGIN);
@@ -67,7 +68,7 @@ export default class BoardPresenter {
     });
   }
 
-  #initialRender(){
+  #initialRender() {
     render(this.#boardComponent, this.#boardContainer);
   }
 
@@ -112,8 +113,16 @@ export default class BoardPresenter {
   }
 
   #render() {
-    this.#renderSort({ currentSortType: this.#currentSortType });
-    this.#renderContent();
+    remove(this.#sortComponent);
+    if (this.#pointsModel.points.length > 0) {
+      this.#renderSort();
+    }
+    if (this.points.length === 0 && !this.#eventsPresenter.isAddFormOpen) {
+
+      this.#renderNoEvents();
+      return;
+    }
+    this.#eventsPresenter.init({ points: this.points, currentSortType: this.#currentSortType });
   }
 
   #renderSort() {
@@ -126,34 +135,29 @@ export default class BoardPresenter {
     render(this.#noEventsComponent, this.#boardContainer);
   }
 
-  #renderContent() {
-    if (this.points.length === 0) {
-      this.#renderNoEvents();
-      return;
-    }
-    this.#eventsPresenter.init({ eventsComponent: this.#boardComponent.element, points: this.points, currentSortType: this.#currentSortType });
-  }
-
   #resetList() {
     this.#eventsPresenter.reset();
-    this.#renderContent();
+    this.#render();
   }
 
   #clearBoard({ resetSortType = false } = {}) {
     this.#eventsPresenter.reset();
-    remove(this.#sortComponent);
     remove(this.#noEventsComponent);
     if (resetSortType) {
       this.#currentSortType = SortType.DAY;
     }
   }
 
-  #newPointDestroyHandler() {
+  #newPointDestroyHandler = () => {
     this.#handleNewPointDestroy();
-  }
+    this.#eventsPresenter.isAddFormOpen = false;
+    if (this.#pointsModel.points.length === 0) {
+      this.#resetList();
+    }
+  };
 
   openAddForm() {
+    this.#eventsPresenter.isAddFormOpen = true;
     this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
-    this.#eventsPresenter.init({ isAddFormOpen: true });
   }
 }

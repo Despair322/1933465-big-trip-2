@@ -1,4 +1,6 @@
-import { render, RenderPosition, replace } from '../framework/render';
+import { remove, render, RenderPosition, replace } from '../framework/render';
+import { SortType } from '../utils/constants';
+import { Sorts } from '../utils/sort';
 import { calculateDuration, calculateTotalPrice, calulatePath } from '../utils/trip';
 import NewPointButtonView from '../view/new-point-button-view/new-point-button-view';
 import TripInfoView from '../view/trip-info-view/trip-info-view';
@@ -30,10 +32,8 @@ export default class HeaderPresenter {
 
   init() {
     this.#preparePoints();
-    this.#tripInfoComponent = new TripInfoView({
-      title: calulatePath(this.#points),
-      dates: calculateDuration(this.#points),
-      cost: calculateTotalPrice(this.#points)
+    this.#newPointButtonComponent = new NewPointButtonView({
+      onClick: this.#newPointButtonClickHandler
     });
     this.#filterPresenter = new FilterPresenter({
       filterContainer: this.#headerContainer.querySelector('.trip-controls__filters'),
@@ -41,9 +41,6 @@ export default class HeaderPresenter {
       pointsModel: this.#pointsModel,
     });
     this.#filterPresenter.init();
-    this.#newPointButtonComponent = new NewPointButtonView({
-      onClick: this.#newPointButtonClickHandler
-    });
     this.#render();
   }
 
@@ -53,19 +50,35 @@ export default class HeaderPresenter {
 
   #render() {
     render(this.#newPointButtonComponent, this.#headerContainer);
-    render(this.#tripInfoComponent, this.#headerContainer, RenderPosition.AFTERBEGIN);
+    this.#renderTripInfo();
   }
 
   #handleModelEvent = () => {
     this.#preparePoints();
+    this.#renderTripInfo();
+    this.#filterPresenter.init();
+  };
+
+  #renderTripInfo() {
+    if (this.#points.length === 0) {
+      if (this.#tripInfoComponent) {
+        remove(this.#tripInfoComponent);
+        this.#tripInfoComponent = null;
+      }
+      return;
+    }
     const newTripInfoComponent = new TripInfoView({
       title: calulatePath(this.#points),
       dates: calculateDuration(this.#points),
       cost: calculateTotalPrice(this.#points)
     });
-    replace(newTripInfoComponent, this.#tripInfoComponent);
+    if (this.#tripInfoComponent) {
+      replace(newTripInfoComponent, this.#tripInfoComponent);
+    } else {
+      render(newTripInfoComponent, this.#headerContainer, RenderPosition.AFTERBEGIN);
+    }
     this.#tripInfoComponent = newTripInfoComponent;
-  };
+  }
 
   #newPointButtonClickHandler = () => {
     this.#handleNewPointButtonClick();
@@ -73,7 +86,8 @@ export default class HeaderPresenter {
   };
 
   #preparePoints() {
-    this.#points = this.#pointsModel.points.map((point) => {
+    const points = this.#pointsModel.points;
+    this.#points = Sorts[SortType.DAY](points).map((point) => {
       const offers = point.offers.map((offer) =>
         this.#offersModel.getOfferByTypeAndId(point.type, offer));
       const destination = this.#destinationsModel.getDestinationById(point.destination);

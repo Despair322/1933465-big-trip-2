@@ -110,12 +110,12 @@ export default class EventPresenter {
     this.#mode = Mode.DEFAULT;
   };
 
-  #openForm() {
+  #openForm = () => {
     this.#handleModeChange();
     replace(this.#editFormComponent, this.#eventComponent);
     window.addEventListener('keydown', this.#escapeKeydownHandler);
     this.#mode = Mode.EDITING;
-  }
+  };
 
   #handleRollupClick = () => {
     this.#toggleEventMode();

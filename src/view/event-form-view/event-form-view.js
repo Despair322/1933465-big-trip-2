@@ -99,7 +99,7 @@ export default class EventFormView extends AbstractStatefulView {
     this._setState({
       basePrice: evt.target.value,
     });
-    this.#debounceValidateAndToggleSubmitButton();
+    this.#validateAndToggleSubmitButton();
   };
 
   #offersChangeHandler = (evt) => {

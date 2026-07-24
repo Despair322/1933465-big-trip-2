@@ -20,33 +20,17 @@ export default class EventsPresenter {
   #handleNewPointDestroy = null;
   #isAddFormOpen = false;
 
-  constructor({ pointsModel, offersModel, destinationsModel, onNewPointDestroy }) {
+  constructor({ pointsModel, offersModel, destinationsModel, eventsComponent, onNewPointDestroy }) {
     this.#offersModel = offersModel;
     this.#destinationsModel = destinationsModel;
     this.#pointsModel = pointsModel;
+    this.#eventsComponent = eventsComponent;
     this.#handleNewPointDestroy = onNewPointDestroy;
   }
 
-  init({ eventsComponent, points, currentSortType, isAddFormOpen }) {
-    this.#eventsComponent = eventsComponent || this.#eventsComponent;
+  init({ points, currentSortType }) {
     this.#points = points || this.#points;
     this.#currentSortType = currentSortType || this.#currentSortType;
-    if (isAddFormOpen) {
-      this.#isAddFormOpen = isAddFormOpen;
-      this.#eventPresenters.forEach((presenter) => presenter.resetView());
-      if (this.#isAddFormOpen) {
-        if (this.#newPointPresenter === null) {
-          this.#newPointPresenter = new NewPointPresenter({
-            offersModel: this.#offersModel,
-            destinationsModel: this.#destinationsModel,
-            onCloseClick: this.#handleNewPointFromClose,
-            onDataChange: this.#handleViewAction
-          });
-        }
-        this.#newPointPresenter.init({ addFormContainer: this.#eventsComponent });
-      }
-      return;
-    }
     this.#render();
   }
 
@@ -76,12 +60,10 @@ export default class EventsPresenter {
     this.#eventPresenters.forEach((presenter) => presenter.resetView());
     if (this.#newPointPresenter) {
       this.#destroyNewPoint();
-      this.#handleNewPointDestroy();
     }
   };
 
   #handleNewPointFromClose = () => {
-    this.#handleNewPointDestroy();
     this.#destroyNewPoint();
   };
 
@@ -139,5 +121,13 @@ export default class EventsPresenter {
 
   updatePoint(point) {
     this.#eventPresenters.get(point.id).init({ point });
+  }
+
+  get isAddFormOpen() {
+    return this.#isAddFormOpen;
+  }
+
+  set isAddFormOpen(value) {
+    this.#isAddFormOpen = value;
   }
 }

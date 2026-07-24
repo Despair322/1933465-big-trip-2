@@ -1,8 +1,5 @@
 import dayjs from 'dayjs';
-
-const DATE_FORMAT = 'MMM DD';
-const TIME_FORMAT = 'HH:mm';
-const DATETIME_FORMAT = 'DD/MM/YY HH:mm';
+import { DATE_FORMAT, DATETIME_FORMAT, HOURS_IN_DAY, MINUTES_IN_DAY, MINUTES_IN_HOUR, TIME_FORMAT } from './constants';
 
 function humanizeDate(date) {
   return date ? dayjs(date).format(DATE_FORMAT) : '';
@@ -18,23 +15,23 @@ function humanizeDateAndTime(date) {
 
 function getTimeBetween(dateFrom, dateTo) {
   const duration = getDuration({ dateFrom, dateTo });
-  const days = Math.floor(duration / 1440);
-  const hours = Math.floor((duration / 60) % 24);
-  const minutes = (duration % 60);
+  const days = Math.floor(duration / MINUTES_IN_DAY);
+  const hours = Math.floor((duration / MINUTES_IN_HOUR) % HOURS_IN_DAY);
+  const minutes = (duration % MINUTES_IN_HOUR);
 
   const formatNum = (value) => String(value).padStart(2, '0');
 
-  const dStr = days ? ` ${formatNum(days)}D ` : '';
-  const hStr = hours ? ` ${formatNum(hours)}H ` : '';
-  const mStr = minutes ? ` ${formatNum(minutes)}M` : '';
+  const dStr = days ? `${formatNum(days)}d ` : '';
+  const hStr = days || hours ? `${formatNum(hours)}h ` : '';
+  const mStr = `${formatNum(minutes)}m`;
   return dStr + hStr + mStr;
 }
 
-function getMinAllowedDate(date) {
+function getMaxAllowedDate(date) {
   return date ? dayjs(date).subtract(1, 'minute').$d : null;
 }
 
-function getMaxAllowedDate(date) {
+function getMinAllowedDate(date) {
   return date ? dayjs(date).add(1, 'minute').$d : null;
 }
 
@@ -43,12 +40,13 @@ function getDuration({ dateFrom, dateTo }) {
 }
 
 function isPointNotChanged(point, newPoint) {
+  const isOffersEqual = point.offers.length === newPoint.offers.length && point.offers.every((offer) => newPoint.offers.some((newOffer) => newOffer === offer));
   return dayjs(point.dateFrom).isSame(dayjs(newPoint.dateFrom))
     && dayjs(point.dateTo).isSame(dayjs(newPoint.dateTo))
     && point.basePrice === newPoint.basePrice
     && point.isFavorite === newPoint.isFavorite
-    && point.offers.length === newPoint.offers.length
-    && point.destination.id === newPoint.destination.id
+    && isOffersEqual
+    && point.destination === newPoint.destination
     && point.type === newPoint.type;
 }
 
