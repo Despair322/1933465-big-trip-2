@@ -39,14 +39,6 @@ function createPointTypeTemplate(type, id) {
           </div>`;
 }
 
-function createAddButtonText(isSaving, isAddForm) {
-  if (isAddForm) {
-    return isSaving ? 'Adding...' : 'Save';
-  } else {
-    return isSaving ? 'Saving...' : 'Save';
-  }
-}
-
 function createResetButtonText(isDeleting, isAddForm) {
   if (isAddForm) {
     return 'Cancel';
@@ -56,9 +48,9 @@ function createResetButtonText(isDeleting, isAddForm) {
 }
 
 function createRollup(isAddForm) {
-  return isAddForm ? '' : `<button class="event__rollup-btn" type="button">
+  return !isAddForm ? `<button class="event__rollup-btn" type="button">
                     <span class="visually-hidden">Open event</span>
-                  </button>`;
+                  </button>` : '';
 }
 
 export function createEventFormTemplate(state, destinations, isAddForm) {
@@ -116,7 +108,7 @@ export function createEventFormTemplate(state, destinations, isAddForm) {
         <input class="event__input  event__input--price" id="event-price-${id}" type="text" name="event-price" value="${he.encode((basePrice || 0).toString())}">
       </div>
 
-      <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${createAddButtonText(isSaving, isAddForm)}</button>
+      <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${!isSaving ? 'Save' : 'Saving...'}</button>
       <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>${createResetButtonText(isDeleting, isAddForm)}</button>
       ${createRollup(isAddForm)}
     </header >

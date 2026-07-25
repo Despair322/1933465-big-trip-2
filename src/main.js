@@ -21,14 +21,14 @@ const filterModel = new FilterModel();
 const pointsInitialization = pointsModel.init();
 const offersInitialization = offersModel.init();
 const destinationsInitialization = destinationsModel.init();
-const allInits = Promise.allSettled([pointsInitialization, offersInitialization, destinationsInitialization]);
+const initsResult = Promise.allSettled([pointsInitialization, offersInitialization, destinationsInitialization]);
 
 const appPresenter = new AppPresenter({
   pointsModel: pointsModel,
   offersModel: offersModel,
   destinationsModel: destinationsModel,
   filterModel: filterModel,
-  allInits: allInits
+  initsResult: initsResult
 });
 
 appPresenter.init();

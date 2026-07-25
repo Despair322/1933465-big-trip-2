@@ -9,6 +9,10 @@ export default class OffersModel extends Observable {
     this.#offersApiService = offersApiService;
   }
 
+  get offers() {
+    return this.#offers;
+  }
+
   async init() {
     try {
       this.#offers = await this.#offersApiService.offers;
@@ -24,9 +28,5 @@ export default class OffersModel extends Observable {
 
   getOfferByTypeAndId(type, id) {
     return this.getOffersByType(type).find((offer) => offer.id === id);
-  }
-
-  get offers() {
-    return this.#offers;
   }
 }

@@ -18,9 +18,14 @@ export default class FilterPresenter {
     this.#addObservers();
   }
 
-  #addObservers() {
-    this.#filterModel.addObserver(this.#handleModelEvent);
-    this.#pointsModel.addObserver(this.#handleModelEvent);
+  get filters() {
+    const points = this.#pointsModel.points;
+    return Object.entries(Filters).map(
+      ([filterType, filterPoints]) => ({
+        type: filterType,
+        count: filterPoints(points).length,
+      }),
+    );
   }
 
   init() {
@@ -39,14 +44,9 @@ export default class FilterPresenter {
     remove(prevFilterComponent);
   }
 
-  get filters() {
-    const points = this.#pointsModel.points;
-    return Object.entries(Filters).map(
-      ([filterType, filterPoints]) => ({
-        type: filterType,
-        count: filterPoints(points).length,
-      }),
-    );
+  #addObservers() {
+    this.#filterModel.addObserver(this.#handleModelEvent);
+    this.#pointsModel.addObserver(this.#handleModelEvent);
   }
 
   #handleModelEvent = () => {

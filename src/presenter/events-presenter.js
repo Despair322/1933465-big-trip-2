@@ -28,6 +28,14 @@ export default class EventsPresenter {
     this.#handleNewPointDestroy = onNewPointDestroy;
   }
 
+  get isAddFormOpen() {
+    return this.#isAddFormOpen;
+  }
+
+  set isAddFormOpen(value) {
+    this.#isAddFormOpen = value;
+  }
+
   init({ points, currentSortType }) {
     this.#points = points || this.#points;
     this.#currentSortType = currentSortType || this.#currentSortType;
@@ -37,6 +45,10 @@ export default class EventsPresenter {
   reset() {
     this.#eventPresenters.forEach((presenter) => presenter.destroy());
     this.#eventPresenters.clear();
+  }
+
+  updatePoint(point) {
+    this.#eventPresenters.get(point.id).init({ point });
   }
 
   #render() {
@@ -56,6 +68,26 @@ export default class EventsPresenter {
     }
   }
 
+  #destroyNewPoint = () => {
+    this.#newPointPresenter.destroy();
+    this.#handleNewPointDestroy();
+    this.#newPointPresenter = null;
+    this.#isAddFormOpen = false;
+  };
+
+  #renderEvent(point) {
+    const eventPresenter = new EventPresenter({
+      eventContainer: this.#eventsComponent,
+      pointsModel: this.#pointsModel,
+      offersModel: this.#offersModel,
+      destinationsModel: this.#destinationsModel,
+      onDataChange: this.#handleViewAction,
+      onModeChange: this.#handleModeChange
+    });
+    eventPresenter.init({ point, currentSortType: this.#currentSortType });
+    this.#eventPresenters.set(point.id, eventPresenter);
+  }
+
   #handleModeChange = () => {
     this.#eventPresenters.forEach((presenter) => presenter.resetView());
     if (this.#newPointPresenter) {
@@ -65,13 +97,6 @@ export default class EventsPresenter {
 
   #handleNewPointFromClose = () => {
     this.#destroyNewPoint();
-  };
-
-  #destroyNewPoint = () => {
-    this.#newPointPresenter.destroy();
-    this.#handleNewPointDestroy();
-    this.#newPointPresenter = null;
-    this.#isAddFormOpen = false;
   };
 
   #handleViewAction = async (actionType, updateType, update) => {
@@ -105,29 +130,4 @@ export default class EventsPresenter {
     }
     this.#uiBLocker.unblock();
   };
-
-  #renderEvent(point) {
-    const eventPresenter = new EventPresenter({
-      eventContainer: this.#eventsComponent,
-      pointsModel: this.#pointsModel,
-      offersModel: this.#offersModel,
-      destinationsModel: this.#destinationsModel,
-      onDataChange: this.#handleViewAction,
-      onModeChange: this.#handleModeChange
-    });
-    eventPresenter.init({ point, currentSortType: this.#currentSortType });
-    this.#eventPresenters.set(point.id, eventPresenter);
-  }
-
-  updatePoint(point) {
-    this.#eventPresenters.get(point.id).init({ point });
-  }
-
-  get isAddFormOpen() {
-    return this.#isAddFormOpen;
-  }
-
-  set isAddFormOpen(value) {
-    this.#isAddFormOpen = value;
-  }
 }

@@ -15,12 +15,12 @@ export default class FilterView extends AbstractView {
     this.#initEventListeners();
   }
 
-  #initEventListeners() {
-    this.element.addEventListener('click', this.#filterTypeChangeHandler);
-  }
-
   get template() {
     return createFilterTemplate(this.#filters, this.#currentFilterType);
+  }
+
+  #initEventListeners() {
+    this.element.addEventListener('click', this.#filterTypeChangeHandler);
   }
 
   #filterTypeChangeHandler = (evt) => {

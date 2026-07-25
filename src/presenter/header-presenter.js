@@ -44,6 +44,10 @@ export default class HeaderPresenter {
     this.#render();
   }
 
+  unblockButton() {
+    this.#newPointButtonComponent.element.disabled = false;
+  }
+
   #addObservers() {
     this.#pointsModel.addObserver(this.#handleModelEvent);
   }
@@ -52,12 +56,6 @@ export default class HeaderPresenter {
     render(this.#newPointButtonComponent, this.#headerContainer);
     this.#renderTripInfo();
   }
-
-  #handleModelEvent = () => {
-    this.#preparePoints();
-    this.#renderTripInfo();
-    this.#filterPresenter.init();
-  };
 
   #renderTripInfo() {
     if (this.#points.length === 0) {
@@ -80,11 +78,6 @@ export default class HeaderPresenter {
     this.#tripInfoComponent = newTripInfoComponent;
   }
 
-  #newPointButtonClickHandler = () => {
-    this.#handleNewPointButtonClick();
-    this.#newPointButtonComponent.element.disabled = true;
-  };
-
   #preparePoints() {
     const points = this.#pointsModel.points;
     this.#points = Sorts[SortType.DAY](points).map((point) => {
@@ -95,7 +88,14 @@ export default class HeaderPresenter {
     });
   }
 
-  unblockButton() {
-    this.#newPointButtonComponent.element.disabled = false;
-  }
+  #handleModelEvent = () => {
+    this.#preparePoints();
+    this.#renderTripInfo();
+    this.#filterPresenter.init();
+  };
+
+  #newPointButtonClickHandler = () => {
+    this.#handleNewPointButtonClick();
+    this.#newPointButtonComponent.element.disabled = true;
+  };
 }

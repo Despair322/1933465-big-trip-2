@@ -26,24 +26,24 @@ export default class BoardPresenter {
   #eventsPresenter = null;
   #sort = null;
   #readyModelsCount = 0;
-  #allInits = null;
+  #initsResult = null;
 
-  constructor({ boardContainer, pointsModel, offersModel, filterModel, destinationsModel, onNewPointDestroy, allInits }) {
+  constructor({ boardContainer, pointsModel, offersModel, filterModel, destinationsModel, onNewPointDestroy, initsResult }) {
     this.#boardContainer = boardContainer;
     this.#pointsModel = pointsModel;
     this.#offersModel = offersModel;
     this.#destinationsModel = destinationsModel;
     this.#filterModel = filterModel;
     this.#handleNewPointDestroy = onNewPointDestroy;
-    this.#allInits = allInits;
+    this.#initsResult = initsResult;
     this.#addObservers();
   }
 
-  #addObservers() {
-    this.#pointsModel.addObserver(this.#handleModelEvent);
-    this.#offersModel.addObserver(this.#handleModelEvent);
-    this.#destinationsModel.addObserver(this.#handleModelEvent);
-    this.#filterModel.addObserver(this.#handleModelEvent);
+  get points() {
+    const currentFilter = this.#filterModel.filter;
+    const points = this.#pointsModel.points;
+    const filteredPoints = Filters[currentFilter](points);
+    return Sorts[this.#currentSortType](filteredPoints);
   }
 
   init() {
@@ -58,7 +58,7 @@ export default class BoardPresenter {
     this.#initialRender();
     this.#renderLoading();
     this.#sort = generateSort();
-    this.#allInits.then((results) => {
+    this.#initsResult.then((results) => {
       remove(this.#loadingComponent);
       if (results.every((result) => result.status === 'fulfilled')) {
         this.#render();
@@ -68,44 +68,25 @@ export default class BoardPresenter {
     });
   }
 
+  openAddForm() {
+    this.#eventsPresenter.isAddFormOpen = true;
+    this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
+  }
+
+  #addObservers() {
+    this.#pointsModel.addObserver(this.#handleModelEvent);
+    this.#offersModel.addObserver(this.#handleModelEvent);
+    this.#destinationsModel.addObserver(this.#handleModelEvent);
+    this.#filterModel.addObserver(this.#handleModelEvent);
+  }
+
   #initialRender() {
     render(this.#boardComponent, this.#boardContainer);
   }
 
-  get points() {
-    const currentFilter = this.#filterModel.filter;
-    const points = this.#pointsModel.points;
-    const filteredPoints = Filters[currentFilter](points);
-    return Sorts[this.#currentSortType](filteredPoints);
-  }
-
-  #handleModelEvent = (updateType, data) => {
-    switch (updateType) {
-      case UpdateType.PATCH:
-        this.#eventsPresenter.updatePoint(data);
-        break;
-      case UpdateType.MINOR:
-        this.#resetList();
-        break;
-      case UpdateType.MAJOR:
-        this.#clearBoard({ resetSortType: true });
-        this.#render();
-        break;
-    }
-  };
-
   #renderLoading() {
     render(this.#loadingComponent, this.#boardContainer);
   }
-
-  #handleSortChange = (sortType) => {
-    if (this.#currentSortType === sortType) {
-      return;
-    }
-    this.#currentSortType = sortType;
-    this.#clearBoard();
-    this.#render();
-  };
 
   #reset() {
     this.#currentSortType = SortType.DAY;
@@ -148,6 +129,30 @@ export default class BoardPresenter {
     }
   }
 
+  #handleModelEvent = (updateType, data) => {
+    switch (updateType) {
+      case UpdateType.PATCH:
+        this.#eventsPresenter.updatePoint(data);
+        break;
+      case UpdateType.MINOR:
+        this.#resetList();
+        break;
+      case UpdateType.MAJOR:
+        this.#clearBoard({ resetSortType: true });
+        this.#render();
+        break;
+    }
+  };
+
+  #handleSortChange = (sortType) => {
+    if (this.#currentSortType === sortType) {
+      return;
+    }
+    this.#currentSortType = sortType;
+    this.#clearBoard();
+    this.#render();
+  };
+
   #newPointDestroyHandler = () => {
     this.#handleNewPointDestroy();
     this.#eventsPresenter.isAddFormOpen = false;
@@ -155,9 +160,4 @@ export default class BoardPresenter {
       this.#resetList();
     }
   };
-
-  openAddForm() {
-    this.#eventsPresenter.isAddFormOpen = true;
-    this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
-  }
 }

@@ -38,6 +38,10 @@ export default class EventPresenter {
     this.#handleModeChange = onModeChange;
   }
 
+  get mode() {
+    return this.#mode;
+  }
+
   init({ point, currentSortType }) {
     this.#point = point;
     this.#destination = this.#destinationsModel.getDestinationById(this.#point.destination);
@@ -100,6 +104,46 @@ export default class EventPresenter {
     }
   }
 
+  setSaving() {
+    if (this.#mode === Mode.EDITING) {
+      window.removeEventListener('keydown', this.#escapeKeydownHandler);
+      this.#editFormComponent.updateElement({
+        isSaving: true,
+        isDisabled: true
+      });
+    }
+  }
+
+  setDeleting() {
+    if (this.#mode === Mode.EDITING) {
+      window.removeEventListener('keydown', this.#escapeKeydownHandler);
+      this.#editFormComponent.updateElement({
+        isDeleting: true,
+        isDisabled: true
+      });
+    }
+  }
+
+  setAborting() {
+    if (this.#mode === Mode.DEFAULT) {
+      this.#eventComponent.shake();
+      return;
+    }
+    window.addEventListener('keydown', this.#escapeKeydownHandler);
+    const resetFormState = () => {
+      this.#editFormComponent.updateElement({
+        isSaving: false,
+        isDisabled: false,
+        isDeleting: false
+      });
+    };
+    this.#editFormComponent.shake(resetFormState);
+  }
+
+  #render() {
+    render(this.#eventComponent, this.#eventContainer);
+  }
+
   #closeForm = () => {
     if (this.#mode === Mode.DEFAULT) {
       return;
@@ -117,14 +161,16 @@ export default class EventPresenter {
     this.#mode = Mode.EDITING;
   };
 
-  #handleRollupClick = () => {
-    this.#toggleEventMode();
-  };
-
-  #escapeKeydownHandler = (evt) => {
-    if (evt.key === 'Escape') {
+  #toggleEventMode() {
+    if (this.#mode === Mode.DEFAULT) {
+      this.#openForm();
+    } else {
       this.#closeForm();
     }
+  }
+
+  #handleRollupClick = () => {
+    this.#toggleEventMode();
   };
 
   #handleFormSubmit = (update) => {
@@ -174,52 +220,9 @@ export default class EventPresenter {
 
   #handleDestinationChange = (destination) => this.#destinationsModel.getDestinationByTitle(destination);
 
-  #render() {
-    render(this.#eventComponent, this.#eventContainer);
-  }
-
-  #toggleEventMode() {
-    if (this.#mode === Mode.DEFAULT) {
-      this.#openForm();
-    } else {
+  #escapeKeydownHandler = (evt) => {
+    if (evt.key === 'Escape') {
       this.#closeForm();
     }
-  }
-
-  setSaving() {
-    if (this.#mode === Mode.EDITING) {
-      this.#editFormComponent.updateElement({
-        isSaving: true,
-        isDisabled: true
-      });
-    }
-  }
-
-  setDeleting() {
-    if (this.#mode === Mode.EDITING) {
-      this.#editFormComponent.updateElement({
-        isDeleting: true,
-        isDisabled: true
-      });
-    }
-  }
-
-  setAborting() {
-    if (this.#mode === Mode.DEFAULT) {
-      this.#eventComponent.shake();
-      return;
-    }
-    const resetFormState = () => {
-      this.#editFormComponent.updateElement({
-        isSaving: false,
-        isDisabled: false,
-        isDeleting: false
-      });
-    };
-    this.#editFormComponent.shake(resetFormState);
-  }
-
-  get mode() {
-    return this.#mode;
-  }
+  };
 }

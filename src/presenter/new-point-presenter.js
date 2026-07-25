@@ -56,17 +56,30 @@ export default class NewPointPresenter {
     window.removeEventListener('keydown', this.#escapeKeydownHandler);
   }
 
+  setSaving() {
+    window.removeEventListener('keydown', this.#escapeKeydownHandler);
+    this.#addFormComponent.updateElement({
+      isSaving: true,
+      isDisabled: true
+    });
+  }
+
+  setAborting() {
+    window.addEventListener('keydown', this.#escapeKeydownHandler);
+    const resetFormState = () => {
+      this.#addFormComponent.updateElement({
+        isSaving: false,
+        isDisabled: false,
+        isDeleting: false
+      });
+    };
+    this.#addFormComponent.shake(resetFormState);
+  }
+
   #render() {
     render(this.#addFormComponent, this.#addFormContainer, RenderPosition.AFTERBEGIN);
     window.addEventListener('keydown', this.#escapeKeydownHandler);
   }
-
-  #escapeKeydownHandler = (evt) => {
-    if (evt.key === 'Escape') {
-      this.#handleCloseClick();
-      this.destroy();
-    }
-  };
 
   #handleFormSubmit = (update) => {
     this.#handleDataChange(
@@ -84,21 +97,10 @@ export default class NewPointPresenter {
 
   #handleDestinationChange = (destination) => this.#destinationsModel.getDestinationByTitle(destination);
 
-  setSaving() {
-    this.#addFormComponent.updateElement({
-      isSaving: true,
-      isDisabled: true
-    });
-  }
-
-  setAborting() {
-    const resetFormState = () => {
-      this.#addFormComponent.updateElement({
-        isSaving: false,
-        isDisabled: false,
-        isDeleting: false
-      });
-    };
-    this.#addFormComponent.shake(resetFormState);
-  }
+  #escapeKeydownHandler = (evt) => {
+    if (evt.key === 'Escape') {
+      this.#handleCloseClick();
+      this.destroy();
+    }
+  };
 }

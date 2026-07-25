@@ -1,10 +1,12 @@
 import { createEventFormTemplate } from './event-form-template.js';
 import AbstractStatefulView from '../../framework/view/abstract-stateful-view.js';
-import { deleteFlags, getFlags } from '../../utils/destination.js';
+import { getFlags } from '../../utils/destination.js';
 import { debounce, getMaxAllowedDate, getMinAllowedDate } from '../../utils/utils.js';
-import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
-import dayjs from 'dayjs';
+import { initDatePickers } from '../../utils/date-picker.js';
+import { parseEventToState, parseStateToPoint, toggleOffers } from './event-form-mapper.js';
+import { validateEventForm } from './event-form-validator.js';
+
 
 export default class EventFormView extends AbstractStatefulView {
   #destinations = [];
@@ -28,7 +30,7 @@ export default class EventFormView extends AbstractStatefulView {
     this.#handleDestinationChange = onDestinationChange;
     this.#handleTypeChange = onTypeChange;
     this.#isAddForm = isAddForm;
-    this._setState(EventFormView.parseEventToState({ point, destination, offers, allOffers }));
+    this._setState(parseEventToState({ point, destination, offers, allOffers }));
     this._restoreHandlers();
     this.#debounceValidateAndToggleSubmitButton = debounce(() => this.#validateAndToggleSubmitButton(), 350);
   }
@@ -50,25 +52,40 @@ export default class EventFormView extends AbstractStatefulView {
     this.#validateAndToggleSubmitButton();
   }
 
+  reset(event) {
+    this.updateElement(
+      parseEventToState(event),
+    );
+  }
+
+  removeElement() {
+    super.removeElement();
+    if (this.#datepickerStart) {
+      this.#datepickerStart.destroy();
+      this.#datepickerStart = null;
+    }
+
+    if (this.#datepickerEnd) {
+      this.#datepickerEnd.destroy();
+      this.#datepickerEnd = null;
+    }
+  }
+
   #validateAndToggleSubmitButton() {
-    const isValid = this.#validateForm();
+    const isValid = validateEventForm(this._state);
     this.#submitButton.disabled = !isValid;
   }
 
-  #validateForm() {
-    if (!this._state.destination.id) {
-      return false;
-    }
-    if (!this._state?.dateFrom?.getTime() || !this._state?.dateTo?.getTime()) {
-      return false;
-    }
-    if (dayjs(this._state.dateFrom).isAfter(this._state.dateTo) || dayjs(this._state.dateTo).isSame(this._state.dateFrom)) {
-      return false;
-    }
-    if (!this._state.basePrice.toString().trim() || this._state.basePrice <= 0 || isNaN(this._state.basePrice)) {
-      return false;
-    }
-    return true;
+  #setDatepickers() {
+    const { datepickerStart, datepickerEnd } = initDatePickers(
+      this.element.querySelector('[id^="event-start-time"]'),
+      this.element.querySelector('[id^="event-end-time"]'),
+      this._state,
+      this.#startDateChangeHandler,
+      this.#endDateChangeHandler
+    );
+    this.#datepickerStart = datepickerStart;
+    this.#datepickerEnd = datepickerEnd;
   }
 
   #typeChangeHandler = (evt) => {
@@ -99,22 +116,16 @@ export default class EventFormView extends AbstractStatefulView {
     this._setState({
       basePrice: evt.target.value,
     });
-    this.#validateAndToggleSubmitButton();
+    this.#debounceValidateAndToggleSubmitButton();
   };
 
   #offersChangeHandler = (evt) => {
     if (evt.target.tagName !== 'INPUT') {
       return;
     }
-    if (this._state.offers.some((offer) => offer.id === evt.target.dataset.offerId)) {
-      this._setState({
-        offers: this._state.offers.filter((offer) => offer.id !== evt.target.dataset.offerId)
-      });
-    } else {
-      this._setState({
-        offers: [...this._state.offers, this._state.allOffers.find((offer) => offer.id === evt.target.dataset.offerId)]
-      });
-    }
+    this._setState({
+      offers: toggleOffers(this._state.offers, this._state.allOffers, evt.target.dataset.offerId)
+    });
   };
 
   #startDateChangeHandler = ([userDate]) => {
@@ -125,14 +136,14 @@ export default class EventFormView extends AbstractStatefulView {
     } else {
       this.#datepickerEnd.set('minDate', null);
     }
-    this.#debounceValidateAndToggleSubmitButton();
+    this.#validateAndToggleSubmitButton();
   };
 
   #endDateChangeHandler = ([userDate]) => {
     this._setState({ dateTo: userDate });
     const maxDateFrom = getMaxAllowedDate(userDate);
     this.#datepickerStart.set('maxDate', maxDateFrom);
-    this.#debounceValidateAndToggleSubmitButton();
+    this.#validateAndToggleSubmitButton();
   };
 
   #rollupClickHandler = (evt) => {
@@ -142,79 +153,15 @@ export default class EventFormView extends AbstractStatefulView {
 
   #deleteClickHandler = (evt) => {
     evt.preventDefault();
-    this.#handleDeleteClick(EventFormView.parseStateToPoint(this._state));
+    this.#handleDeleteClick(parseStateToPoint(this._state));
   };
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
-    if (!this.#validateForm()) {
+    if (!validateEventForm(this._state)) {
       this.shake();
       return;
     }
-    this.#handleFormSubmit(EventFormView.parseStateToPoint(this._state));
+    this.#handleFormSubmit(parseStateToPoint(this._state));
   };
-
-  reset(event) {
-    this.updateElement(
-      EventFormView.parseEventToState(event),
-    );
-  }
-
-  removeElement() {
-    super.removeElement();
-    if (this.#datepickerStart) {
-      this.#datepickerStart.destroy();
-      this.#datepickerStart = null;
-    }
-
-    if (this.#datepickerEnd) {
-      this.#datepickerEnd.destroy();
-      this.#datepickerEnd = null;
-    }
-  }
-
-  #setDatepickers() {
-    const commonOptions = {
-      dateFormat: 'd/m/y H:i',
-      enableTime: true,
-      // eslint-disable-next-line camelcase
-      time_24hr: true,
-      locale: { firstDayOfWeek: 1 },
-    };
-    this.#datepickerStart = flatpickr(
-      this.element.querySelector('[id^="event-start-time"]'),
-      {
-        ...commonOptions,
-        defaultDate: this._state.dateFrom,
-        onClose: this.#startDateChangeHandler,
-        maxDate: getMaxAllowedDate(this._state.dateTo)
-      },
-    );
-    this.#datepickerEnd = flatpickr(
-      this.element.querySelector('[id^="event-end-time"]'),
-      {
-        ...commonOptions,
-        defaultDate: this._state.dateTo,
-        minDate: getMinAllowedDate(this._state.dateFrom),
-        onClose: this.#endDateChangeHandler
-      },
-    );
-  }
-
-  static parseEventToState({ point, destination, offers, allOffers }) {
-    const hasOffers = allOffers.length > 0;
-    const dateFrom = point.dateFrom ? dayjs(point.dateFrom).$d : undefined;
-    const dateTo = point.dateTo ? dayjs(point.dateTo).$d : undefined;
-    return {
-      ...point, dateFrom, dateTo, destination, offers, allOffers, hasOffers, ...getFlags(destination),
-    };
-  }
-
-  static parseStateToPoint(state) {
-    const point = deleteFlags(structuredClone(state));
-    point.destination = point.destination.id;
-    point.offers = point.offers.map((offer) => offer.id);
-    point.basePrice = Number(point.basePrice);
-    return point;
-  }
 }
