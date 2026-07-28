@@ -7,7 +7,7 @@ import { initDatePickers } from '../../utils/date-picker.js';
 import { parseEventToState, parseStateToPoint, toggleOffers } from './event-form-mapper.js';
 import { validateEventForm } from './event-form-validator.js';
 
-
+const DEBOUNCE_TIMEOUT = 300;
 export default class EventFormView extends AbstractStatefulView {
   #destinations = [];
   #handleFormSubmit = null;
@@ -32,7 +32,7 @@ export default class EventFormView extends AbstractStatefulView {
     this.#isAddForm = isAddForm;
     this._setState(parseEventToState({ point, destination, offers, allOffers }));
     this._restoreHandlers();
-    this.#debounceValidateAndToggleSubmitButton = debounce(() => this.#validateAndToggleSubmitButton(), 350);
+    this.#debounceValidateAndToggleSubmitButton = debounce(() => this.#validateAndToggleSubmitButton(), DEBOUNCE_TIMEOUT);
   }
 
   get template() {

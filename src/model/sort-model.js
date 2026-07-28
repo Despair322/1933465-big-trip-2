@@ -1,8 +1,9 @@
 import Observable from '../framework/observable.js';
 import { SortType } from '../utils/constants.js';
 
+const DEFAULT_SORT = SortType.DAY;
 export default class SortModel extends Observable {
-  #sort = SortType.DAY;
+  #sort = DEFAULT_SORT;
 
   get sort() {
     return this.#sort;
@@ -14,6 +15,6 @@ export default class SortModel extends Observable {
   }
 
   reset() {
-    this.#sort = SortType.DAY;
+    this.#sort = DEFAULT_SORT;
   }
 }
