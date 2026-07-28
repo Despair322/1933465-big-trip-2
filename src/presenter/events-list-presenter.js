@@ -1,17 +1,14 @@
 import UiBlocker from '../framework/ui-blocker/ui-blocker';
 import { UserAction, TimeLimit } from '../utils/constants';
+import { selectViewPoints } from '../utils/selectors';
 import EventPresenter from './event-presenter';
 import NewPointPresenter from './new-point-presenter';
 
-export default class EventsPresenter {
+export default class EventsListPresenter {
   #eventPresenters = new Map();
   #newPointPresenter = null;
-  #pointsModel = null;
-  #offersModel = null;
-  #destinationsModel = null;
+  #store = null;
   #eventsComponent = null;
-  #points = null;
-  #currentSortType = null;
   #uiBLocker = new UiBlocker({
     lowerLimit: TimeLimit.LOWER_LIMIT,
     upperLimit: TimeLimit.UPPER_LIMIT
@@ -20,17 +17,22 @@ export default class EventsPresenter {
   #handleNewPointDestroy = null;
   #isAddFormOpen = false;
 
-  constructor({ pointsModel, offersModel, destinationsModel, eventsComponent, onNewPointDestroy }) {
-    this.#offersModel = offersModel;
-    this.#destinationsModel = destinationsModel;
-    this.#pointsModel = pointsModel;
+  constructor({ store, eventsComponent, onNewPointDestroy }) {
+    this.#store = store;
     this.#eventsComponent = eventsComponent;
     this.#handleNewPointDestroy = onNewPointDestroy;
   }
 
-  init({ points, currentSortType }) {
-    this.#points = points || this.#points;
-    this.#currentSortType = currentSortType || this.#currentSortType;
+
+  get isAddFormOpen() {
+    return this.#isAddFormOpen;
+  }
+
+  set isAddFormOpen(value) {
+    this.#isAddFormOpen = value;
+  }
+
+  init() {
     this.#render();
   }
 
@@ -39,21 +41,43 @@ export default class EventsPresenter {
     this.#eventPresenters.clear();
   }
 
+  updatePoint(point) {
+    this.#eventPresenters.get(point.id).init({ point });
+  }
+
   #render() {
     if (this.#isAddFormOpen) {
       if (this.#newPointPresenter === null) {
         this.#newPointPresenter = new NewPointPresenter({
-          offersModel: this.#offersModel,
-          destinationsModel: this.#destinationsModel,
+          store: this.#store,
           onCloseClick: this.#handleNewPointFromClose,
           onDataChange: this.#handleViewAction
         });
       }
       this.#newPointPresenter.init({ addFormContainer: this.#eventsComponent });
     }
-    for (let i = 0; i < this.#points.length; i++) {
-      this.#renderEvent(this.#points[i]);
+    const points = selectViewPoints(this.#store);
+    for (let i = 0; i < points.length; i++) {
+      this.#renderEvent(points[i]);
     }
+  }
+
+  #destroyNewPoint = () => {
+    this.#newPointPresenter.destroy();
+    this.#handleNewPointDestroy();
+    this.#newPointPresenter = null;
+    this.#isAddFormOpen = false;
+  };
+
+  #renderEvent(point) {
+    const eventPresenter = new EventPresenter({
+      eventContainer: this.#eventsComponent,
+      store: this.#store,
+      onDataChange: this.#handleViewAction,
+      onModeChange: this.#handleModeChange
+    });
+    eventPresenter.init({ point });
+    this.#eventPresenters.set(point.id, eventPresenter);
   }
 
   #handleModeChange = () => {
@@ -67,20 +91,13 @@ export default class EventsPresenter {
     this.#destroyNewPoint();
   };
 
-  #destroyNewPoint = () => {
-    this.#newPointPresenter.destroy();
-    this.#handleNewPointDestroy();
-    this.#newPointPresenter = null;
-    this.#isAddFormOpen = false;
-  };
-
   #handleViewAction = async (actionType, updateType, update) => {
     this.#uiBLocker.block();
     switch (actionType) {
       case UserAction.UPDATE_POINT:
         this.#eventPresenters.get(update.id).setSaving();
         try {
-          await this.#pointsModel.updatePoint(updateType, update);
+          await this.#store.pointsModel.updatePoint(updateType, update);
         } catch (err) {
           this.#eventPresenters.get(update.id).setAborting();
         }
@@ -88,7 +105,7 @@ export default class EventsPresenter {
       case UserAction.ADD_POINT:
         this.#newPointPresenter.setSaving();
         try {
-          await this.#pointsModel.addPoint(updateType, update);
+          await this.#store.pointsModel.addPoint(updateType, update);
           this.#destroyNewPoint();
         } catch (err) {
           this.#newPointPresenter.setAborting();
@@ -97,7 +114,7 @@ export default class EventsPresenter {
       case UserAction.DELETE_POINT:
         this.#eventPresenters.get(update.id).setDeleting();
         try {
-          await this.#pointsModel.deletePoint(updateType, update);
+          await this.#store.pointsModel.deletePoint(updateType, update);
         } catch (err) {
           this.#eventPresenters.get(update.id).setAborting();
         }
@@ -105,29 +122,4 @@ export default class EventsPresenter {
     }
     this.#uiBLocker.unblock();
   };
-
-  #renderEvent(point) {
-    const eventPresenter = new EventPresenter({
-      eventContainer: this.#eventsComponent,
-      pointsModel: this.#pointsModel,
-      offersModel: this.#offersModel,
-      destinationsModel: this.#destinationsModel,
-      onDataChange: this.#handleViewAction,
-      onModeChange: this.#handleModeChange
-    });
-    eventPresenter.init({ point, currentSortType: this.#currentSortType });
-    this.#eventPresenters.set(point.id, eventPresenter);
-  }
-
-  updatePoint(point) {
-    this.#eventPresenters.get(point.id).init({ point });
-  }
-
-  get isAddFormOpen() {
-    return this.#isAddFormOpen;
-  }
-
-  set isAddFormOpen(value) {
-    this.#isAddFormOpen = value;
-  }
 }

@@ -10,11 +10,15 @@ export default class PointsModel extends Observable {
     this.#pointsApiService = pointsApiService;
   }
 
+  get points() {
+    return this.#points;
+  }
+
   async init() {
     await this.initPoints();
   }
 
-  async initPoints(){
+  async initPoints() {
     try {
       const points = await this.#pointsApiService.points;
       this.#points = points.map(this.#adaptToClient);
@@ -22,10 +26,6 @@ export default class PointsModel extends Observable {
       this.#points = [];
       throw new Error('Can\'t load points');
     }
-  }
-
-  get points() {
-    return this.#points;
   }
 
   async updatePoint(updateType, update) {

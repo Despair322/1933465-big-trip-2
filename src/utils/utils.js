@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { DATE_FORMAT, DATETIME_FORMAT, HOURS_IN_DAY, MINUTES_IN_DAY, MINUTES_IN_HOUR, TIME_FORMAT } from './constants';
+import { DATE_FORMAT, DATETIME_FORMAT, HOURS_IN_DAY, MINUTES_IN_DAY, MINUTES_IN_HOUR, SortType, TIME_FORMAT, UpdateType } from './constants';
 
 function humanizeDate(date) {
   return date ? dayjs(date).format(DATE_FORMAT) : '';
@@ -61,4 +61,25 @@ function debounce(func, delay = 500) {
   };
 }
 
-export { humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration, isPointNotChanged, debounce, getMinAllowedDate, getMaxAllowedDate };
+function determineUpdateType(update, currentPoint, sortType) {
+  switch (sortType) {
+    case SortType.DAY:
+      if (!dayjs(update.dateFrom).isSame(dayjs(currentPoint.dateFrom))) {
+        return UpdateType.MINOR;
+      }
+      break;
+    case SortType.PRICE:
+      if (update.basePrice !== currentPoint.basePrice) {
+        return UpdateType.MINOR;
+      }
+      break;
+    case SortType.TIME:
+      if (getDuration(update) !== getDuration(currentPoint)) {
+        return UpdateType.MINOR;
+      }
+      break;
+  }
+  return UpdateType.PATCH;
+}
+
+export { humanizeDate, humanizeTime, humanizeDateAndTime, getTimeBetween, getDuration, isPointNotChanged, debounce, getMinAllowedDate, getMaxAllowedDate, determineUpdateType };

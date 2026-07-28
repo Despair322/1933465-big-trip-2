@@ -5,23 +5,36 @@ export default class AppPresenter {
   #headerPresenter = null;
   #boardPresenter = null;
 
-  #pointsModel = null;
-  #offersModel = null;
-  #destinationsModel = null;
-  #filterModel = null;
-
+  #store = null;
   #boardContainer = null;
   #headerContainer = null;
 
-  #allInits = null;
+  #initsResult = null;
 
-  constructor({ pointsModel, offersModel, destinationsModel, filterModel, allInits }) {
-    this.#pointsModel = pointsModel;
-    this.#offersModel = offersModel;
-    this.#destinationsModel = destinationsModel;
-    this.#filterModel = filterModel;
-    this.#allInits = allInits;
+  constructor({ store, initsResult }) {
+    this.#store = store;
+    this.#initsResult = initsResult;
     this.#findContainers();
+  }
+
+  init() {
+    this.#boardPresenter = new BoardPresenter({
+      boardContainer: this.#boardContainer,
+      store: this.#store,
+      initsResult: this.#initsResult,
+      onNewPointDestroy: this.#newPointFormCloseHandler
+    });
+    this.#headerPresenter = new HeaderPresenter({
+      headerContainer: this.#headerContainer,
+      store: this.#store,
+      onClick: this.#newPointButtonClickHandler
+    });
+    this.#initsResult.then((results) => {
+      if (results.every((result) => result.status === 'fulfilled')) {
+        this.#headerPresenter.init();
+      }
+    });
+    this.#boardPresenter.init();
   }
 
   #findContainers() {
@@ -36,30 +49,4 @@ export default class AppPresenter {
   #newPointFormCloseHandler = () => {
     this.#headerPresenter.unblockButton();
   };
-
-  init() {
-    this.#boardPresenter = new BoardPresenter({
-      boardContainer: this.#boardContainer,
-      pointsModel: this.#pointsModel,
-      offersModel: this.#offersModel,
-      destinationsModel: this.#destinationsModel,
-      filterModel: this.#filterModel,
-      allInits: this.#allInits,
-      onNewPointDestroy: this.#newPointFormCloseHandler
-    });
-    this.#headerPresenter = new HeaderPresenter({
-      headerContainer: this.#headerContainer,
-      pointsModel: this.#pointsModel,
-      filterModel: this.#filterModel,
-      offersModel: this.#offersModel,
-      destinationsModel: this.#destinationsModel,
-      onClick: this.#newPointButtonClickHandler
-    });
-    this.#allInits.then((results) => {
-      if (results.every((result) => result.status === 'fulfilled')) {
-        this.#headerPresenter.init();
-      }
-    });
-    this.#boardPresenter.init();
-  }
 }

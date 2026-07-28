@@ -1,6 +1,6 @@
 import { remove, render, RenderPosition, replace } from '../framework/render';
-import { SortType } from '../utils/constants';
-import { Sorts } from '../utils/sort';
+import { FilterType, UpdateType } from '../utils/constants';
+import { selectTravelPath } from '../utils/selectors';
 import { calculateDuration, calculateTotalPrice, calulatePath } from '../utils/trip';
 import NewPointButtonView from '../view/new-point-button-view/new-point-button-view';
 import TripInfoView from '../view/trip-info-view/trip-info-view';
@@ -8,10 +8,7 @@ import FilterPresenter from './filter-presenter';
 
 export default class HeaderPresenter {
   #headerContainer = null;
-  #pointsModel = null;
-  #filterModel = null;
-  #offersModel = null;
-  #destinationsModel = null;
+  #store = null;
   #handleNewPointButtonClick = null;
 
   #filterPresenter = null;
@@ -19,45 +16,45 @@ export default class HeaderPresenter {
   #tripInfoComponent = null;
   #points = null;
 
-  constructor({ headerContainer, pointsModel, offersModel, destinationsModel, filterModel, onClick }) {
+  constructor({ headerContainer, store, onClick }) {
+    this.#store = store;
     this.#headerContainer = headerContainer;
-    this.#pointsModel = pointsModel;
-    this.#filterModel = filterModel;
-    this.#offersModel = offersModel;
-    this.#destinationsModel = destinationsModel;
     this.#handleNewPointButtonClick = onClick;
 
     this.#addObservers();
   }
 
   init() {
-    this.#preparePoints();
+    this.#points = selectTravelPath(this.#store);
     this.#newPointButtonComponent = new NewPointButtonView({
       onClick: this.#newPointButtonClickHandler
     });
     this.#filterPresenter = new FilterPresenter({
       filterContainer: this.#headerContainer.querySelector('.trip-controls__filters'),
-      filterModel: this.#filterModel,
-      pointsModel: this.#pointsModel,
+      store: this.#store,
+      onFilterTypeChange: this.#handleFilterTypeChange
     });
     this.#filterPresenter.init();
     this.#render();
   }
 
+  unblockButton() {
+    this.#newPointButtonComponent.element.disabled = false;
+  }
+
+  #handleFilterTypeChange = (updateType, filterType) => {
+    this.#store.sortModel.reset();
+    this.#store.filterModel.setFilter(updateType, filterType);
+  };
+
   #addObservers() {
-    this.#pointsModel.addObserver(this.#handleModelEvent);
+    this.#store.pointsModel.addObserver(this.#handleModelEvent);
   }
 
   #render() {
     render(this.#newPointButtonComponent, this.#headerContainer);
     this.#renderTripInfo();
   }
-
-  #handleModelEvent = () => {
-    this.#preparePoints();
-    this.#renderTripInfo();
-    this.#filterPresenter.init();
-  };
 
   #renderTripInfo() {
     if (this.#points.length === 0) {
@@ -80,22 +77,15 @@ export default class HeaderPresenter {
     this.#tripInfoComponent = newTripInfoComponent;
   }
 
+  #handleModelEvent = () => {
+    this.#points = selectTravelPath(this.#store);
+    this.#renderTripInfo();
+    this.#filterPresenter.init();
+  };
+
   #newPointButtonClickHandler = () => {
     this.#handleNewPointButtonClick();
     this.#newPointButtonComponent.element.disabled = true;
+    this.#handleFilterTypeChange(UpdateType.MAJOR, FilterType.EVERYTHING);
   };
-
-  #preparePoints() {
-    const points = this.#pointsModel.points;
-    this.#points = Sorts[SortType.DAY](points).map((point) => {
-      const offers = point.offers.map((offer) =>
-        this.#offersModel.getOfferByTypeAndId(point.type, offer));
-      const destination = this.#destinationsModel.getDestinationById(point.destination);
-      return { ...point, offers, destination };
-    });
-  }
-
-  unblockButton() {
-    this.#newPointButtonComponent.element.disabled = false;
-  }
 }

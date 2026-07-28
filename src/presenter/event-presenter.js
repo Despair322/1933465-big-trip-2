@@ -1,9 +1,9 @@
 import EventView from '../view/event-view/event-view.js';
 import EventFormView from '../view/event-form-view/event-form-view.js';
 import { remove, render, replace } from '../framework/render.js';
-import { UserAction, UpdateType, SortType } from '../utils/constants.js';
-import dayjs from 'dayjs';
-import { getDuration, isPointNotChanged } from '../utils/utils.js';
+import { UserAction, UpdateType } from '../utils/constants.js';
+import { determineUpdateType, isPointNotChanged } from '../utils/utils.js';
+import { selectDestinationById, selectDestinationByTitle, selectOfferByTypeAndId, selectOffersByType } from '../utils/selectors.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -15,8 +15,7 @@ export default class EventPresenter {
   #eventComponent = null;
   #editFormComponent = null;
   #eventContainer = null;
-  #offersModel = null;
-  #destinationsModel = null;
+  #store = null;
 
   #point = null;
   #offers = [];
@@ -24,28 +23,23 @@ export default class EventPresenter {
   #allOffers = [];
   #destinations = [];
   #mode = Mode.DEFAULT;
-  #currentSortType = null;
 
   #handleDataChange = null;
   #handleModeChange = null;
 
-  constructor({ eventContainer, offersModel, destinationsModel, onDataChange, onModeChange }) {
+  constructor({ eventContainer, store, onDataChange, onModeChange }) {
     this.#eventContainer = eventContainer;
-    this.#offersModel = offersModel;
-    this.#destinationsModel = destinationsModel;
-    this.#destinations = this.#destinationsModel.destinations;
+    this.#store = store;
+    this.#destinations = this.#store.destinations;
     this.#handleDataChange = onDataChange;
     this.#handleModeChange = onModeChange;
   }
 
-  init({ point, currentSortType }) {
+  init({ point }) {
     this.#point = point;
-    this.#destination = this.#destinationsModel.getDestinationById(this.#point.destination);
-    this.#offers = this.#point.offers.map((offer) => this.#offersModel.getOfferByTypeAndId(this.#point.type, offer));
-    this.#allOffers = this.#offersModel.getOffersByType(this.#point.type);
-    if (!this.#currentSortType) {
-      this.#currentSortType = currentSortType;
-    }
+    this.#destination = selectDestinationById(this.#store, this.#point.destination);
+    this.#offers = this.#point.offers.map((offer) => selectOfferByTypeAndId(this.#store, this.#point.type, offer));
+    this.#allOffers = selectOffersByType(this.#store, this.#point.type);
 
     const prevEventComponent = this.#eventComponent;
     const prevEditFormComponent = this.#editFormComponent;
@@ -100,6 +94,46 @@ export default class EventPresenter {
     }
   }
 
+  setSaving() {
+    if (this.#mode === Mode.EDITING) {
+      window.removeEventListener('keydown', this.#escapeKeydownHandler);
+      this.#editFormComponent.updateElement({
+        isSaving: true,
+        isDisabled: true
+      });
+    }
+  }
+
+  setDeleting() {
+    if (this.#mode === Mode.EDITING) {
+      window.removeEventListener('keydown', this.#escapeKeydownHandler);
+      this.#editFormComponent.updateElement({
+        isDeleting: true,
+        isDisabled: true
+      });
+    }
+  }
+
+  setAborting() {
+    if (this.#mode === Mode.DEFAULT) {
+      this.#eventComponent.shake();
+      return;
+    }
+    window.addEventListener('keydown', this.#escapeKeydownHandler);
+    const resetFormState = () => {
+      this.#editFormComponent.updateElement({
+        isSaving: false,
+        isDisabled: false,
+        isDeleting: false
+      });
+    };
+    this.#editFormComponent.shake(resetFormState);
+  }
+
+  #render() {
+    render(this.#eventComponent, this.#eventContainer);
+  }
+
   #closeForm = () => {
     if (this.#mode === Mode.DEFAULT) {
       return;
@@ -117,14 +151,16 @@ export default class EventPresenter {
     this.#mode = Mode.EDITING;
   };
 
-  #handleRollupClick = () => {
-    this.#toggleEventMode();
-  };
-
-  #escapeKeydownHandler = (evt) => {
-    if (evt.key === 'Escape') {
+  #toggleEventMode() {
+    if (this.#mode === Mode.DEFAULT) {
+      this.#openForm();
+    } else {
       this.#closeForm();
     }
+  }
+
+  #handleRollupClick = () => {
+    this.#toggleEventMode();
   };
 
   #handleFormSubmit = (update) => {
@@ -132,27 +168,9 @@ export default class EventPresenter {
       this.#editFormComponent.shake();
       return;
     }
-    let updateType = UpdateType.PATCH;
-    switch (this.#currentSortType) {
-      case SortType.DAY:
-        if (!dayjs(update.dateFrom).isSame(dayjs(this.#point.dateFrom))) {
-          updateType = UpdateType.MINOR;
-        }
-        break;
-      case SortType.PRICE:
-        if (update.basePrice !== this.#point.basePrice) {
-          updateType = UpdateType.MINOR;
-        }
-        break;
-      case SortType.TIME:
-        if (getDuration(update) !== getDuration(this.#point)) {
-          updateType = UpdateType.MINOR;
-        }
-        break;
-    }
     this.#handleDataChange(
       UserAction.UPDATE_POINT,
-      updateType,
+      determineUpdateType(update, this.#point, this.#store.sort),
       update);
   };
 
@@ -170,56 +188,13 @@ export default class EventPresenter {
       { ...this.#point, isFavorite: !this.#point.isFavorite });
   };
 
-  #handleTypeChange = (type) => this.#offersModel.getOffersByType(type);
+  #handleTypeChange = (type) => selectOffersByType(this.#store, type);
 
-  #handleDestinationChange = (destination) => this.#destinationsModel.getDestinationByTitle(destination);
+  #handleDestinationChange = (destination) => selectDestinationByTitle(this.#store, destination);
 
-  #render() {
-    render(this.#eventComponent, this.#eventContainer);
-  }
-
-  #toggleEventMode() {
-    if (this.#mode === Mode.DEFAULT) {
-      this.#openForm();
-    } else {
+  #escapeKeydownHandler = (evt) => {
+    if (evt.key === 'Escape') {
       this.#closeForm();
     }
-  }
-
-  setSaving() {
-    if (this.#mode === Mode.EDITING) {
-      this.#editFormComponent.updateElement({
-        isSaving: true,
-        isDisabled: true
-      });
-    }
-  }
-
-  setDeleting() {
-    if (this.#mode === Mode.EDITING) {
-      this.#editFormComponent.updateElement({
-        isDeleting: true,
-        isDisabled: true
-      });
-    }
-  }
-
-  setAborting() {
-    if (this.#mode === Mode.DEFAULT) {
-      this.#eventComponent.shake();
-      return;
-    }
-    const resetFormState = () => {
-      this.#editFormComponent.updateElement({
-        isSaving: false,
-        isDisabled: false,
-        isDeleting: false
-      });
-    };
-    this.#editFormComponent.shake(resetFormState);
-  }
-
-  get mode() {
-    return this.#mode;
-  }
+  };
 }

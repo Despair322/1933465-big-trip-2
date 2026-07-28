@@ -1,12 +1,12 @@
 import EventFormView from '../view/event-form-view/event-form-view.js';
 import { remove, render, RenderPosition } from '../framework/render.js';
 import { UserAction, UpdateType, BLANK_POINT, BLANK_DESTINATION } from '../utils/constants.js';
+import { selectDestinationByTitle, selectOffersByType } from '../utils/selectors.js';
 
 export default class NewPointPresenter {
   #addFormComponent = null;
   #addFormContainer = null;
-  #offersModel = null;
-  #destinationsModel = null;
+  #store = null;
 
   #offers = [];
   #destination = null;
@@ -18,17 +18,16 @@ export default class NewPointPresenter {
   #handleDestroy = null;
   #handleCloseClick = null;
 
-  constructor({ offersModel, destinationsModel, onDataChange, onCloseClick }) {
-    this.#offersModel = offersModel;
-    this.#destinationsModel = destinationsModel;
-    this.#destinations = this.#destinationsModel.destinations;
+  constructor({ store, onDataChange, onCloseClick }) {
+    this.#store = store;
+    this.#destinations = this.#store.destinations;
     this.#handleDataChange = onDataChange;
     this.#handleCloseClick = onCloseClick;
   }
 
   init({ addFormContainer }) {
     this.#addFormContainer = addFormContainer;
-    this.#allOffers = this.#offersModel.getOffersByType(BLANK_POINT.type);
+    this.#allOffers = selectOffersByType(this.#store, BLANK_POINT.type);
     if (this.#addFormComponent === null) {
       this.#addFormComponent = new EventFormView(
         {
@@ -56,17 +55,30 @@ export default class NewPointPresenter {
     window.removeEventListener('keydown', this.#escapeKeydownHandler);
   }
 
+  setSaving() {
+    window.removeEventListener('keydown', this.#escapeKeydownHandler);
+    this.#addFormComponent.updateElement({
+      isSaving: true,
+      isDisabled: true
+    });
+  }
+
+  setAborting() {
+    window.addEventListener('keydown', this.#escapeKeydownHandler);
+    const resetFormState = () => {
+      this.#addFormComponent.updateElement({
+        isSaving: false,
+        isDisabled: false,
+        isDeleting: false
+      });
+    };
+    this.#addFormComponent.shake(resetFormState);
+  }
+
   #render() {
     render(this.#addFormComponent, this.#addFormContainer, RenderPosition.AFTERBEGIN);
     window.addEventListener('keydown', this.#escapeKeydownHandler);
   }
-
-  #escapeKeydownHandler = (evt) => {
-    if (evt.key === 'Escape') {
-      this.#handleCloseClick();
-      this.destroy();
-    }
-  };
 
   #handleFormSubmit = (update) => {
     this.#handleDataChange(
@@ -80,25 +92,14 @@ export default class NewPointPresenter {
     this.destroy();
   };
 
-  #handleTypeChange = (type) => this.#offersModel.getOffersByType(type);
+  #handleTypeChange = (type) => selectOffersByType(this.#store, type);
 
-  #handleDestinationChange = (destination) => this.#destinationsModel.getDestinationByTitle(destination);
+  #handleDestinationChange = (destination) => selectDestinationByTitle(this.#store, destination);
 
-  setSaving() {
-    this.#addFormComponent.updateElement({
-      isSaving: true,
-      isDisabled: true
-    });
-  }
-
-  setAborting() {
-    const resetFormState = () => {
-      this.#addFormComponent.updateElement({
-        isSaving: false,
-        isDisabled: false,
-        isDeleting: false
-      });
-    };
-    this.#addFormComponent.shake(resetFormState);
-  }
+  #escapeKeydownHandler = (evt) => {
+    if (evt.key === 'Escape') {
+      this.#handleCloseClick();
+      this.destroy();
+    }
+  };
 }

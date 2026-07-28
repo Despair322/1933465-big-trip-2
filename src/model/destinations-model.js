@@ -1,12 +1,13 @@
-// import { getDestinations } from '../mock/destinations';
-import Observable from '../framework/observable.js';
-export default class DestinationsModel extends Observable {
+export default class DestinationsModel {
   #destinations = [];
   #destinationsApiService = null;
 
   constructor({ destinationsApiService }) {
-    super();
     this.#destinationsApiService = destinationsApiService;
+  }
+
+  get destinations() {
+    return this.#destinations;
   }
 
   async init() {
@@ -16,17 +17,5 @@ export default class DestinationsModel extends Observable {
       this.#destinations = [];
       throw new Error('Can\'t load destinations');
     }
-  }
-
-  get destinations() {
-    return this.#destinations;
-  }
-
-  getDestinationById(id) {
-    return this.destinations.find((destination) => destination.id === id);
-  }
-
-  getDestinationByTitle(title) {
-    return this.destinations.find((destination) => destination.name === title);
   }
 }
