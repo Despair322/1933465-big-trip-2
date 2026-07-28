@@ -1,12 +1,13 @@
 import TripEventsListView from '../view/trip-events-list-view/trip-events-list-view.js';
 import SortView from '../view/sort-view/sort-view.js';
 import { remove, render, RenderPosition } from '../framework/render.js';
-import { Messages, SortType, UpdateType, FilterType } from '../utils/constants.js';
-import { Sorts, generateSort } from '../utils/sort.js';
-import { Filters } from '../utils/filter.js';
-import EventsPresenter from './events-presenter.js';
+import { Messages, UpdateType } from '../utils/constants.js';
+import { generateSort } from '../utils/sort.js';
+
+import EventsListPresenter from './events-list-presenter.js';
 import LoadingView from '../view/loading-view/loading-veiw.js';
 import ErrorView from '../view/error-view/error-view.js';
+import { selectViewPoints } from '../utils/selectors.js';
 
 
 export default class BoardPresenter {
@@ -15,43 +16,30 @@ export default class BoardPresenter {
   #loadingComponent = new LoadingView();
   #sortComponent = null;
   #noEventsComponent = null;
-  #pointsModel = null;
-  #offersModel = null;
-  #destinationsModel = null;
-  #filterModel = null;
+  #store = null;
   #handleNewPointDestroy = null;
 
   #destinations = [];
-  #currentSortType = SortType.DAY;
-  #eventsPresenter = null;
+  #eventsListPresenter = null;
   #sort = null;
-  #readyModelsCount = 0;
   #initsResult = null;
 
-  constructor({ boardContainer, pointsModel, offersModel, filterModel, destinationsModel, onNewPointDestroy, initsResult }) {
+  constructor({ boardContainer, store, onNewPointDestroy, initsResult }) {
     this.#boardContainer = boardContainer;
-    this.#pointsModel = pointsModel;
-    this.#offersModel = offersModel;
-    this.#destinationsModel = destinationsModel;
-    this.#filterModel = filterModel;
+    this.#store = store;
     this.#handleNewPointDestroy = onNewPointDestroy;
     this.#initsResult = initsResult;
     this.#addObservers();
   }
 
   get points() {
-    const currentFilter = this.#filterModel.filter;
-    const points = this.#pointsModel.points;
-    const filteredPoints = Filters[currentFilter](points);
-    return Sorts[this.#currentSortType](filteredPoints);
+    return selectViewPoints(this.#store);
   }
 
   init() {
-    this.#destinations = this.#destinationsModel.destinations;
-    this.#eventsPresenter = new EventsPresenter({
-      pointsModel: this.#pointsModel,
-      offersModel: this.#offersModel,
-      destinationsModel: this.#destinationsModel,
+    this.#destinations = this.#store.destinations;
+    this.#eventsListPresenter = new EventsListPresenter({
+      store: this.#store,
       eventsComponent: this.#boardComponent.element,
       onNewPointDestroy: this.#newPointDestroyHandler,
     });
@@ -69,15 +57,13 @@ export default class BoardPresenter {
   }
 
   openAddForm() {
-    this.#eventsPresenter.isAddFormOpen = true;
-    this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
+    this.#eventsListPresenter.isAddFormOpen = true;
   }
 
   #addObservers() {
-    this.#pointsModel.addObserver(this.#handleModelEvent);
-    this.#offersModel.addObserver(this.#handleModelEvent);
-    this.#destinationsModel.addObserver(this.#handleModelEvent);
-    this.#filterModel.addObserver(this.#handleModelEvent);
+    this.#store.pointsModel.addObserver(this.#handleModelEvent);
+    this.#store.filterModel.addObserver(this.#handleModelEvent);
+    this.#store.sortModel.addObserver(this.#handleModelEvent);
   }
 
   #initialRender() {
@@ -88,75 +74,65 @@ export default class BoardPresenter {
     render(this.#loadingComponent, this.#boardContainer);
   }
 
-  #reset() {
-    this.#currentSortType = SortType.DAY;
-    this.#filterModel.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
-  }
-
   #render() {
     remove(this.#sortComponent);
-    if (this.#pointsModel.points.length > 0) {
+    if (this.#store.points.length > 0) {
       this.#renderSort();
     }
-    if (this.points.length === 0 && !this.#eventsPresenter.isAddFormOpen) {
+    if (this.points.length === 0 && !this.#eventsListPresenter.isAddFormOpen) {
 
       this.#renderNoEvents();
       return;
     }
-    this.#eventsPresenter.init({ points: this.points, currentSortType: this.#currentSortType });
+    this.#eventsListPresenter.init();
   }
 
   #renderSort() {
-    this.#sortComponent = new SortView({ sort: this.#sort, onSortTypeChange: this.#handleSortChange, currentSortType: this.#currentSortType });
+    this.#sortComponent = new SortView({ sort: this.#sort, onSortTypeChange: this.#handleSortChange, currentSortType: this.#store.sort });
     render(this.#sortComponent, this.#boardContainer, RenderPosition.AFTERBEGIN);
   }
 
   #renderNoEvents() {
-    this.#noEventsComponent = new ErrorView(Messages[this.#filterModel.filter]);
+    this.#noEventsComponent = new ErrorView(Messages[this.#store.filter]);
     render(this.#noEventsComponent, this.#boardContainer);
   }
 
   #resetList() {
-    this.#eventsPresenter.reset();
+    this.#eventsListPresenter.reset();
     this.#render();
   }
 
-  #clearBoard({ resetSortType = false } = {}) {
-    this.#eventsPresenter.reset();
+  #clearBoard() {
+    this.#eventsListPresenter.reset();
     remove(this.#noEventsComponent);
-    if (resetSortType) {
-      this.#currentSortType = SortType.DAY;
-    }
   }
 
   #handleModelEvent = (updateType, data) => {
     switch (updateType) {
       case UpdateType.PATCH:
-        this.#eventsPresenter.updatePoint(data);
+        this.#eventsListPresenter.updatePoint(data);
         break;
       case UpdateType.MINOR:
         this.#resetList();
         break;
       case UpdateType.MAJOR:
-        this.#clearBoard({ resetSortType: true });
+        this.#clearBoard();
         this.#render();
         break;
     }
   };
 
   #handleSortChange = (sortType) => {
-    if (this.#currentSortType === sortType) {
+    if (this.#store.sort === sortType) {
       return;
     }
-    this.#currentSortType = sortType;
-    this.#clearBoard();
-    this.#render();
+    this.#store.sortModel.setSort(UpdateType.MAJOR, sortType);
   };
 
   #newPointDestroyHandler = () => {
     this.#handleNewPointDestroy();
-    this.#eventsPresenter.isAddFormOpen = false;
-    if (this.#pointsModel.points.length === 0) {
+    this.#eventsListPresenter.isAddFormOpen = false;
+    if (this.#store.points.length === 0) {
       this.#resetList();
     }
   };

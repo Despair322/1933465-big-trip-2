@@ -4,6 +4,7 @@ import { remove, render, replace } from '../framework/render.js';
 import { UserAction, UpdateType, SortType } from '../utils/constants.js';
 import dayjs from 'dayjs';
 import { getDuration, isPointNotChanged } from '../utils/utils.js';
+import { selectDestinationById, selectDestinationByTitle, selectOfferByTypeAndId, selectOffersByType } from '../utils/selectors.js';
 
 const Mode = {
   DEFAULT: 'DEFAULT',
@@ -15,8 +16,7 @@ export default class EventPresenter {
   #eventComponent = null;
   #editFormComponent = null;
   #eventContainer = null;
-  #offersModel = null;
-  #destinationsModel = null;
+  #store = null;
 
   #point = null;
   #offers = [];
@@ -24,16 +24,14 @@ export default class EventPresenter {
   #allOffers = [];
   #destinations = [];
   #mode = Mode.DEFAULT;
-  #currentSortType = null;
 
   #handleDataChange = null;
   #handleModeChange = null;
 
-  constructor({ eventContainer, offersModel, destinationsModel, onDataChange, onModeChange }) {
+  constructor({ eventContainer, store, onDataChange, onModeChange }) {
     this.#eventContainer = eventContainer;
-    this.#offersModel = offersModel;
-    this.#destinationsModel = destinationsModel;
-    this.#destinations = this.#destinationsModel.destinations;
+    this.#store = store;
+    this.#destinations = this.#store.destinations;
     this.#handleDataChange = onDataChange;
     this.#handleModeChange = onModeChange;
   }
@@ -42,14 +40,11 @@ export default class EventPresenter {
     return this.#mode;
   }
 
-  init({ point, currentSortType }) {
+  init({ point }) {
     this.#point = point;
-    this.#destination = this.#destinationsModel.getDestinationById(this.#point.destination);
-    this.#offers = this.#point.offers.map((offer) => this.#offersModel.getOfferByTypeAndId(this.#point.type, offer));
-    this.#allOffers = this.#offersModel.getOffersByType(this.#point.type);
-    if (!this.#currentSortType) {
-      this.#currentSortType = currentSortType;
-    }
+    this.#destination = selectDestinationById(this.#store, this.#point.destination);
+    this.#offers = this.#point.offers.map((offer) => selectOfferByTypeAndId(this.#store, this.#point.type, offer));
+    this.#allOffers = selectOffersByType(this.#store, this.#point.type);
 
     const prevEventComponent = this.#eventComponent;
     const prevEditFormComponent = this.#editFormComponent;
@@ -179,7 +174,7 @@ export default class EventPresenter {
       return;
     }
     let updateType = UpdateType.PATCH;
-    switch (this.#currentSortType) {
+    switch (this.#store.sort) {
       case SortType.DAY:
         if (!dayjs(update.dateFrom).isSame(dayjs(this.#point.dateFrom))) {
           updateType = UpdateType.MINOR;
@@ -216,9 +211,9 @@ export default class EventPresenter {
       { ...this.#point, isFavorite: !this.#point.isFavorite });
   };
 
-  #handleTypeChange = (type) => this.#offersModel.getOffersByType(type);
+  #handleTypeChange = (type) => selectOffersByType(this.#store, type);
 
-  #handleDestinationChange = (destination) => this.#destinationsModel.getDestinationByTitle(destination);
+  #handleDestinationChange = (destination) => selectDestinationByTitle(this.#store, destination);
 
   #escapeKeydownHandler = (evt) => {
     if (evt.key === 'Escape') {

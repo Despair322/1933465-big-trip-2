@@ -5,21 +5,14 @@ export default class AppPresenter {
   #headerPresenter = null;
   #boardPresenter = null;
 
-  #pointsModel = null;
-  #offersModel = null;
-  #destinationsModel = null;
-  #filterModel = null;
-
+  #store = null;
   #boardContainer = null;
   #headerContainer = null;
 
   #initsResult = null;
 
-  constructor({ pointsModel, offersModel, destinationsModel, filterModel, initsResult }) {
-    this.#pointsModel = pointsModel;
-    this.#offersModel = offersModel;
-    this.#destinationsModel = destinationsModel;
-    this.#filterModel = filterModel;
+  constructor({ store, initsResult }) {
+    this.#store = store;
     this.#initsResult = initsResult;
     this.#findContainers();
   }
@@ -27,19 +20,13 @@ export default class AppPresenter {
   init() {
     this.#boardPresenter = new BoardPresenter({
       boardContainer: this.#boardContainer,
-      pointsModel: this.#pointsModel,
-      offersModel: this.#offersModel,
-      destinationsModel: this.#destinationsModel,
-      filterModel: this.#filterModel,
+      store: this.#store,
       initsResult: this.#initsResult,
       onNewPointDestroy: this.#newPointFormCloseHandler
     });
     this.#headerPresenter = new HeaderPresenter({
       headerContainer: this.#headerContainer,
-      pointsModel: this.#pointsModel,
-      filterModel: this.#filterModel,
-      offersModel: this.#offersModel,
-      destinationsModel: this.#destinationsModel,
+      store: this.#store,
       onClick: this.#newPointButtonClickHandler
     });
     this.#initsResult.then((results) => {

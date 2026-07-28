@@ -5,21 +5,18 @@ import FilterView from '../view/filter-view/filter-view.js';
 
 export default class FilterPresenter {
   #filterContainer = null;
-  #filterModel = null;
-  #pointsModel = null;
+  #store = null;
 
   #filterComponent = null;
 
-  constructor({ filterContainer, filterModel, pointsModel }) {
+  constructor({ filterContainer, store}) {
     this.#filterContainer = filterContainer;
-    this.#filterModel = filterModel;
-    this.#pointsModel = pointsModel;
-
+    this.#store = store;
     this.#addObservers();
   }
 
   get filters() {
-    const points = this.#pointsModel.points;
+    const points = this.#store.points;
     return Object.entries(Filters).map(
       ([filterType, filterPoints]) => ({
         type: filterType,
@@ -32,7 +29,7 @@ export default class FilterPresenter {
     const prevFilterComponent = this.#filterComponent;
     this.#filterComponent = new FilterView({
       filters: this.filters,
-      currentFilterType: this.#filterModel.filter,
+      currentFilterType: this.#store.filter,
       onFilterTypeChange: this.#handleFilterTypeChange,
     });
 
@@ -45,8 +42,8 @@ export default class FilterPresenter {
   }
 
   #addObservers() {
-    this.#filterModel.addObserver(this.#handleModelEvent);
-    this.#pointsModel.addObserver(this.#handleModelEvent);
+    this.#store.filterModel.addObserver(this.#handleModelEvent);
+    this.#store.pointsModel.addObserver(this.#handleModelEvent);
   }
 
   #handleModelEvent = () => {
@@ -54,9 +51,9 @@ export default class FilterPresenter {
   };
 
   #handleFilterTypeChange = (filterType) => {
-    if (this.#filterModel.filter === filterType) {
+    if (this.#store.filter === filterType) {
       return;
     }
-    this.#filterModel.setFilter(UpdateType.MAJOR, filterType);
+    this.#store.setFilter(UpdateType.MAJOR, filterType);
   };
 }
