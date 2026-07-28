@@ -32,6 +32,7 @@ export default class HeaderPresenter {
     this.#filterPresenter = new FilterPresenter({
       filterContainer: this.#headerContainer.querySelector('.trip-controls__filters'),
       store: this.#store,
+      onFilterTypeChange: this.#handleFilterTypeChange
     });
     this.#filterPresenter.init();
     this.#render();
@@ -40,6 +41,11 @@ export default class HeaderPresenter {
   unblockButton() {
     this.#newPointButtonComponent.element.disabled = false;
   }
+
+  #handleFilterTypeChange = (updateType, filterType) => {
+    this.#store.sortModel.reset();
+    this.#store.filterModel.setFilter(updateType, filterType);
+  };
 
   #addObservers() {
     this.#store.pointsModel.addObserver(this.#handleModelEvent);
@@ -80,6 +86,6 @@ export default class HeaderPresenter {
   #newPointButtonClickHandler = () => {
     this.#handleNewPointButtonClick();
     this.#newPointButtonComponent.element.disabled = true;
-    this.#store.setFilter(UpdateType.MAJOR, FilterType.EVERYTHING);
+    this.#handleFilterTypeChange(UpdateType.MAJOR, FilterType.EVERYTHING);
   };
 }

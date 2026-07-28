@@ -49,11 +49,6 @@ export default class TravelStore {
     return this.#filterModel.filter;
   }
 
-  setFilter(updateType, filterType) {
-    this.#sortModel.reset();
-    this.#filterModel.setFilter(updateType, filterType);
-  }
-
   get sort() {
     return this.#sortModel.sort;
   }

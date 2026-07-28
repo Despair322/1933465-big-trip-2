@@ -6,11 +6,13 @@ import FilterView from '../view/filter-view/filter-view.js';
 export default class FilterPresenter {
   #filterContainer = null;
   #store = null;
+  #onFilterTypeChange = null;
 
   #filterComponent = null;
 
-  constructor({ filterContainer, store}) {
+  constructor({ filterContainer, store, onFilterTypeChange }) {
     this.#filterContainer = filterContainer;
+    this.#onFilterTypeChange = onFilterTypeChange;
     this.#store = store;
     this.#addObservers();
   }
@@ -54,6 +56,6 @@ export default class FilterPresenter {
     if (this.#store.filter === filterType) {
       return;
     }
-    this.#store.setFilter(UpdateType.MAJOR, filterType);
+    this.#onFilterTypeChange(UpdateType.MAJOR, filterType);
   };
 }
