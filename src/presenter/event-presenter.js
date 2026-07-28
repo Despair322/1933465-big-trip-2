@@ -1,9 +1,8 @@
 import EventView from '../view/event-view/event-view.js';
 import EventFormView from '../view/event-form-view/event-form-view.js';
 import { remove, render, replace } from '../framework/render.js';
-import { UserAction, UpdateType, SortType } from '../utils/constants.js';
-import dayjs from 'dayjs';
-import { getDuration, isPointNotChanged } from '../utils/utils.js';
+import { UserAction, UpdateType } from '../utils/constants.js';
+import { determineUpdateType, isPointNotChanged } from '../utils/utils.js';
 import { selectDestinationById, selectDestinationByTitle, selectOfferByTypeAndId, selectOffersByType } from '../utils/selectors.js';
 
 const Mode = {
@@ -34,10 +33,6 @@ export default class EventPresenter {
     this.#destinations = this.#store.destinations;
     this.#handleDataChange = onDataChange;
     this.#handleModeChange = onModeChange;
-  }
-
-  get mode() {
-    return this.#mode;
   }
 
   init({ point }) {
@@ -173,27 +168,9 @@ export default class EventPresenter {
       this.#editFormComponent.shake();
       return;
     }
-    let updateType = UpdateType.PATCH;
-    switch (this.#store.sort) {
-      case SortType.DAY:
-        if (!dayjs(update.dateFrom).isSame(dayjs(this.#point.dateFrom))) {
-          updateType = UpdateType.MINOR;
-        }
-        break;
-      case SortType.PRICE:
-        if (update.basePrice !== this.#point.basePrice) {
-          updateType = UpdateType.MINOR;
-        }
-        break;
-      case SortType.TIME:
-        if (getDuration(update) !== getDuration(this.#point)) {
-          updateType = UpdateType.MINOR;
-        }
-        break;
-    }
     this.#handleDataChange(
       UserAction.UPDATE_POINT,
-      updateType,
+      determineUpdateType(update, this.#point, this.#store.sort),
       update);
   };
 
