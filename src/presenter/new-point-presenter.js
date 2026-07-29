@@ -8,14 +8,10 @@ export default class NewPointPresenter {
   #addFormContainer = null;
   #store = null;
 
-  #offers = [];
-  #destination = null;
   #allOffers = [];
   #destinations = [];
 
   #handleDataChange = null;
-  #handleModeChange = null;
-  #handleDestroy = null;
   #handleCloseClick = null;
 
   constructor({ store, onDataChange, onCloseClick }) {

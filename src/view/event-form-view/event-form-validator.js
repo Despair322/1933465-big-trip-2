@@ -4,13 +4,13 @@ const validateEventForm = (state) => {
   if (!state.destination.id) {
     return false;
   }
-  if (!state?.dateFrom?.getTime() || !state?.dateTo?.getTime()) {
+  const from = state?.dateFrom;
+  const to = state?.dateTo;
+  if (!from || !to || !dayjs(from).isBefore(to)) {
     return false;
   }
-  if (dayjs(state.dateFrom).isAfter(state.dateTo) || dayjs(state.dateTo).isSame(state.dateFrom)) {
-    return false;
-  }
-  if (!state.basePrice.toString().trim() || state.basePrice <= 0 || isNaN(state.basePrice)) {
+  const price = Number(state?.basePrice);
+  if (isNaN(price) || price <= 0) {
     return false;
   }
   return true;

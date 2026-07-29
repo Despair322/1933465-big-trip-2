@@ -17,14 +17,6 @@ export default class TravelStore {
     return this.#pointsModel;
   }
 
-  get offersModel() {
-    return this.#offersModel;
-  }
-
-  get destinationsModel() {
-    return this.#destinationsModel;
-  }
-
   get filterModel() {
     return this.#filterModel;
   }
